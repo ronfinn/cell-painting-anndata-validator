@@ -44,6 +44,7 @@ the category, and which registered check (`checks/<module>.py`) emits it.
 |---|---|---|
 | `MATRIX001` | error | `.X` has a non-numeric dtype. |
 | `MATRIX002` | warning | `.X` contains NaN/Inf values (checked via bounded, sparse-safe sampling). |
+| `MATRIX003` | error | `.X`'s shape does not equal `(n_obs, n_vars)`. A real `anndata.AnnData` enforces this on construction, so this only fires for a hand-edited or corrupted `.h5ad` file. |
 | `MATRIX004` | error | A `.layers` entry's shape does not match `.X`'s shape. |
 | `SLOT001` | warning | No processing stage is declared (`uns['processing_stage']`). |
 | `SLOT002` | error | An `.obsm`/`.varm` entry's first dimension does not match `n_obs`/`n_vars`. |
@@ -107,8 +108,9 @@ the category, and which registered check (`checks/<module>.py`) emits it.
 
 ## Notes on earlier drafts
 
-The original design brainstorm also sketched `MATRIX003` (dtype vs.
-declared processing stage) and `FEAT002` (duplicate feature name — already
-covered by `INDEX002`). Both were consolidated away before implementation
-to avoid overlapping meanings; the codes were never shipped, so no
-renumbering was required.
+The original design brainstorm also sketched an early `MATRIX003` meaning
+("dtype vs. declared processing stage") and `FEAT002` (duplicate feature
+name — already covered by `INDEX002`). Neither was ever shipped, so both
+codes were free to reassign without violating the "never renumber or
+reuse" rule: `MATRIX003` was later shipped with its current meaning
+(`.X` shape vs. `(n_obs, n_vars)`); `FEAT002` remains unused.

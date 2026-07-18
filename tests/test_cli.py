@@ -165,7 +165,7 @@ def test_schema_list_command_lists_builtin_schemas() -> None:
 def test_schema_show_command_describes_a_schema() -> None:
     result = runner.invoke(app, ["schema", "show", "jump-cp"])
     assert result.exit_code == 0
-    assert "jump-cp v1.0.0" in result.stdout
+    assert "jump-cp v0.1.0" in result.stdout
     assert "Metadata_Plate" in result.stdout
 
 

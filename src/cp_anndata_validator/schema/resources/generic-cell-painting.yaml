@@ -1,5 +1,5 @@
 schema_id: generic-cell-painting
-schema_version: "1.0.0"
+schema_version: "0.1.0"
 description: >
   Vendor-neutral schema for Cell Painting profiles. Does not assume any
   single upstream pipeline's exact column spelling: canonical fields are
@@ -7,12 +7,12 @@ description: >
 
 fields:
   plate:
-    aliases: [plate_id, plate, Plate, Metadata_Plate]
+    aliases: [plate_id, plate, Metadata_Plate]
     location: obs
     required_for: [single-cell, well]
     description: Plate identifier.
   well:
-    aliases: [well_id, well, Well, Metadata_Well]
+    aliases: [well_id, well, Metadata_Well]
     location: obs
     required_for: [single-cell, well]
     description: Well identifier within a plate.

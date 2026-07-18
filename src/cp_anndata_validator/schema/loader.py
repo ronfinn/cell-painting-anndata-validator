@@ -59,7 +59,13 @@ def load_builtin_schema(name: str) -> SchemaDefinition:
         ) from exc
 
     resource = resources.files("cp_anndata_validator.schema.resources").joinpath(filename)
-    raw_text = resource.read_text(encoding="utf-8")
+    try:
+        raw_text = resource.read_text(encoding="utf-8")
+    except (FileNotFoundError, OSError) as exc:
+        raise SchemaError(
+            f"Built-in schema {name!r} is registered but its packaged resource "
+            f"file {filename!r} is missing or unreadable: {exc}"
+        ) from exc
     data = _parse_yaml_mapping(raw_text, source=f"'{name}' (built-in)")
     return _validate_schema(data, source=f"'{name}' (built-in)")
 

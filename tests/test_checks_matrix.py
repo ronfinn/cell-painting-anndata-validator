@@ -14,6 +14,7 @@ from cp_anndata_validator.checks.matrix import (
     check_layer_shape_consistency,
     check_matrix_dtype,
     check_matrix_finite_values,
+    check_matrix_shape_consistency,
     check_obsm_varm_alignment,
     check_processing_stage_declared,
 )
@@ -33,6 +34,31 @@ def make_context(adata: ad.AnnData, sample_rows: int = 5000) -> CheckContext:
     return CheckContext(
         handle=handle, resolved_schema=resolved, profile=profile, sample_rows=sample_rows
     )
+
+
+def test_matrix_shape_consistency_passes_for_a_well_formed_adata() -> None:
+    ctx = make_context(make_single_cell_adata(n_obs=6, n_vars=4))
+    assert check_matrix_shape_consistency(ctx) == []
+
+
+def test_matrix_shape_consistency_flags_row_count_mismatch() -> None:
+    fake = _MismatchedAnnData((6, 4), n_obs=5)
+    ctx = make_context(fake)  # type: ignore[arg-type]
+
+    issues = check_matrix_shape_consistency(ctx)
+
+    assert [issue.code for issue in issues] == ["MATRIX003"]
+    assert "(6, 4)" in issues[0].message
+    assert "(5, 4)" in issues[0].message
+
+
+def test_matrix_shape_consistency_flags_column_count_mismatch() -> None:
+    fake = _MismatchedAnnData((6, 4), n_vars=3)
+    ctx = make_context(fake)  # type: ignore[arg-type]
+
+    issues = check_matrix_shape_consistency(ctx)
+
+    assert [issue.code for issue in issues] == ["MATRIX003"]
 
 
 @pytest.mark.parametrize("sparse_x", [False, True])
@@ -107,16 +133,18 @@ class _MismatchedAnnData:
         layers: dict[str, np.ndarray] | None = None,
         obsm: dict[str, np.ndarray] | None = None,
         varm: dict[str, np.ndarray] | None = None,
+        n_obs: int | None = None,
+        n_vars: int | None = None,
     ) -> None:
         self.X = np.zeros(x_shape, dtype=np.float32)
         self.layers = layers or {}
         self.obsm = obsm or {}
         self.varm = varm or {}
         self.uns: dict[str, object] = {}
-        self.n_obs = x_shape[0]
-        self.n_vars = x_shape[1]
-        self.obs = pd.DataFrame(index=[f"o{i}" for i in range(x_shape[0])])
-        self.var = pd.DataFrame(index=[f"f{i}" for i in range(x_shape[1])])
+        self.n_obs = n_obs if n_obs is not None else x_shape[0]
+        self.n_vars = n_vars if n_vars is not None else x_shape[1]
+        self.obs = pd.DataFrame(index=[f"o{i}" for i in range(self.n_obs)])
+        self.var = pd.DataFrame(index=[f"f{i}" for i in range(self.n_vars)])
 
 
 def test_layer_shape_consistency_passes_when_layers_match_x() -> None:

@@ -10,6 +10,33 @@ _NUMERIC_DTYPE_KINDS = "iuf"
 _FLOATING_DTYPE_KINDS = "fc"
 
 
+@register_check(name="matrix_shape_consistency", category=Category.MATRIX)
+def check_matrix_shape_consistency(ctx: CheckContext) -> list[Issue]:
+    """X's shape must equal (n_obs, n_vars); a real anndata.AnnData enforces this on
+    construction, but a hand-edited or corrupted .h5ad file might not."""
+    handle = ctx.handle
+    if handle.adata.X is None:
+        return []
+
+    expected = (handle.n_obs, handle.n_vars)
+    actual = handle.x_shape
+    if actual == expected:
+        return []
+
+    return [
+        Issue(
+            code="MATRIX003",
+            severity=Severity.ERROR,
+            category=Category.MATRIX,
+            location="X",
+            message=f"X has shape {actual}, but (n_obs, n_vars) is {expected}.",
+            evidence=None,
+            remediation="Ensure X has exactly one row per observation and one column per feature.",
+            check_name="matrix_shape_consistency",
+        )
+    ]
+
+
 @register_check(name="matrix_dtype", category=Category.MATRIX)
 def check_matrix_dtype(ctx: CheckContext) -> list[Issue]:
     """X must have a numeric dtype."""

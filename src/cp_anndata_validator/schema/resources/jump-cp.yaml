@@ -1,5 +1,5 @@
 schema_id: jump-cp
-schema_version: "1.0.0"
+schema_version: "0.1.0"
 description: >
   Compatibility preset based on public JUMP Cell Painting Consortium
   metadata conventions documented at

@@ -8,6 +8,7 @@ import pytest
 
 from cp_anndata_validator.profiles import ProfileLevel
 from cp_anndata_validator.schema import SchemaError, load_schema
+from cp_anndata_validator.schema import loader as schema_loader
 from cp_anndata_validator.schema.loader import list_builtin_schema_names, load_builtin_schema
 from cp_anndata_validator.schema.models import SchemaDefinition
 
@@ -148,3 +149,86 @@ def test_directory_as_schema_path_raises_schema_error(tmp_path: Path) -> None:
     directory.mkdir()
     with pytest.raises(SchemaError, match="not a file"):
         load_schema(directory)
+
+
+def test_duplicate_alias_within_a_field_is_rejected(tmp_path: Path) -> None:
+    bogus = tmp_path / "duplicate_alias_same_field.yaml"
+    bogus.write_text(
+        """
+        schema_id: bad-schema
+        schema_version: "0.1.0"
+        fields:
+          plate:
+            aliases: [plate_id, Plate_ID]
+            location: obs
+        """
+    )
+    with pytest.raises(SchemaError, match="duplicate alias"):
+        load_schema(bogus)
+
+
+def test_duplicate_alias_across_fields_is_rejected(tmp_path: Path) -> None:
+    bogus = tmp_path / "duplicate_alias_cross_field.yaml"
+    bogus.write_text(
+        """
+        schema_id: bad-schema
+        schema_version: "0.1.0"
+        fields:
+          plate:
+            aliases: [shared_column]
+            location: obs
+          well:
+            aliases: [shared_column]
+            location: obs
+        """
+    )
+    with pytest.raises(SchemaError, match="is used by both"):
+        load_schema(bogus)
+
+
+@pytest.mark.parametrize(
+    "version",
+    ["1", "1.0", "v1.0.0", "1.0.0.0", "latest", ""],
+)
+def test_invalid_schema_version_is_rejected(tmp_path: Path, version: str) -> None:
+    bogus = tmp_path / "bad_version.yaml"
+    bogus.write_text(
+        f"""
+        schema_id: bad-schema
+        schema_version: "{version}"
+        fields: {{}}
+        """
+    )
+    with pytest.raises(SchemaError):
+        load_schema(bogus)
+
+
+@pytest.mark.parametrize("version", ["0.1.0", "1.2.3", "2.0.0-alpha.1", "1.0.0+build.7"])
+def test_valid_semver_schema_versions_are_accepted(tmp_path: Path, version: str) -> None:
+    ok = tmp_path / "good_version.yaml"
+    ok.write_text(
+        f"""
+        schema_id: ok-schema
+        schema_version: "{version}"
+        fields: {{}}
+        """
+    )
+    schema = load_schema(ok)
+    assert schema.schema_version == version
+
+
+def test_builtin_schemas_use_version_0_1_0() -> None:
+    for name in ("generic-cell-painting", "jump-cp"):
+        assert load_builtin_schema(name).schema_version == "0.1.0"
+
+
+def test_missing_builtin_schema_resource_file_raises_schema_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(
+        schema_loader._BUILTIN_SCHEMA_RESOURCES,
+        "phantom-schema",
+        "this-file-does-not-exist.yaml",
+    )
+    with pytest.raises(SchemaError, match="missing or unreadable"):
+        load_builtin_schema("phantom-schema")

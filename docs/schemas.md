@@ -51,6 +51,14 @@ compartments: [Cells, Cytoplasm, Nuclei, Image]
   `.obs`/`.var` column (case-insensitive, exact after trimming whitespace)
   wins. There is no regex or fuzzy matching in v0.1 — see
   [limitations.md](limitations.md).
+- Because matching is case-insensitive, the same alias (case-insensitively)
+  cannot appear twice within one field's `aliases` list, nor be reused
+  across two different fields in the same schema — both are rejected at
+  load time with a descriptive `SchemaError`, since either would make
+  resolution ambiguous.
+- `schema_version` must be a semantic version (`MAJOR.MINOR.PATCH`, with
+  optional pre-release/build metadata, e.g. `"0.1.0"` or `"2.0.0-rc.1"`);
+  anything else is rejected at load time.
 - `required_for` controls both the `IDENTxxx` completeness checks and
   profile-level auto-detection (see [profile-levels.md](profile-levels.md)).
 - `compartments` drives the `FEAT001` check: every feature name should start
