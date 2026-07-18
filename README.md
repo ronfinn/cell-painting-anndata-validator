@@ -346,16 +346,13 @@ Full set in [`docs/`](docs/index.md): [CLI reference](docs/cli.md),
 [`jump-cp` provenance](docs/jump-cp-derivation.md), and
 [known limitations](docs/limitations.md).
 
-## License
+## Licence and citation
 
-Apache License 2.0 — see [`LICENSE`](LICENSE).
+Copyright © 2026 Ron Finn.
 
-We chose Apache-2.0 over BSD-3-Clause for its explicit patent grant and
-termination clause (§3), which matters more for a validation tool likely to
-be embedded in institutional/pharma CI pipelines than for a typical small
-library: it gives downstream users of the check engine an explicit,
-reciprocal patent license from every contributor, reducing legal ambiguity
-for organizations that would otherwise need to review that risk themselves
-before adopting it. Both licenses are permissive and OSI-approved; either
-would have been a reasonable choice for a project with no strong copyleft
-requirement.
+This project is licensed under the Apache License 2.0. Please preserve the
+applicable licence and attribution notices when redistributing or modifying
+the software.
+
+Academic and research users are encouraged to cite the project using the
+repository's `CITATION.cff` metadata.
