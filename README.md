@@ -1,10 +1,13 @@
-# cp-anndata-validator
+# Cell Painting AnnData Validator
+
+**Cell Painting AnnData Validator** is distributed as
+`cp-anndata-validator` and provides the `cp-validate` command.
 
 A Python package and CLI that validates the semantic correctness, metadata
 completeness, provenance, and AI-readiness of **Cell Painting datasets
 stored as [AnnData](https://anndata.readthedocs.io/)** (`.h5ad`) objects.
 
-`cp-anndata-validator` is read-only: it never converts other formats into
+`cell-painting-anndata-validator` is read-only: it never converts other formats into
 AnnData and never mutates the file it validates.
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
