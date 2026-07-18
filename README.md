@@ -1,361 +1,902 @@
 # Cell Painting AnnData Validator
 
+[![CI](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/ci.yml)
+[![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue.svg)](https://www.python.org/)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+![Development status](https://img.shields.io/badge/status-alpha-orange.svg)
+
+Validate the semantic correctness, metadata completeness, provenance, and
+basic AI-readiness of Cell Painting datasets represented as AnnData
+(`.h5ad`).
+
+```bash
+uv run cp-validate validate experiment.h5ad
+```
+
+Generate a self-contained HTML report:
+
+```bash
+uv run cp-validate validate \
+  experiment.h5ad \
+  --report validation-report.html
+```
+
 **Cell Painting AnnData Validator** is distributed as
-`cp-anndata-validator` and provides the `cp-validate` command.
+`cp-anndata-validator`, provides the `cp-validate` command, and uses the
+Python import package `cp_anndata_validator`.
 
-A Python package and CLI that validates the semantic correctness, metadata
-completeness, provenance, and AI-readiness of **Cell Painting datasets
-stored as [AnnData](https://anndata.readthedocs.io/)** (`.h5ad`) objects.
+The validator does not modify, convert, or automatically repair the input
+AnnData file. It returns structured validation results and can write console,
+JSON, or HTML reports.
 
-`cell-painting-anndata-validator` is read-only: it never converts other formats into
-AnnData and never mutates the file it validates.
+> **Project status:** Alpha. The rule catalogue, built-in schemas, and public
+> API may evolve as the validator is tested against additional real-world
+> Cell Painting datasets.
 
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+## Contents
 
-<!-- Add a CI badge here once this repository has a GitHub remote, e.g.:
-[![CI](https://github.com/<org>/<repo>/actions/workflows/ci.yml/badge.svg)](https://github.com/<org>/<repo>/actions/workflows/ci.yml) -->
+- [Why this project exists](#why-this-project-exists)
+- [How it complements CytoTable](#how-it-complements-cytotable)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [What it validates](#what-it-validates)
+- [Profile levels](#profile-levels)
+- [AnnData mapping](#anndata-mapping)
+- [Schemas](#schemas)
+- [Reports](#reports)
+- [CLI reference](#cli-reference)
+- [Python API](#python-api)
+- [Examples](#examples)
+- [Exit codes](#exit-codes)
+- [Limitations](#limitations)
+- [Development](#development)
+- [Contributing](#contributing)
+- [Licence and attribution](#licence-and-attribution)
 
-## Problem statement
+## Why this project exists
 
-Cell Painting pipelines (CellProfiler/DeepProfiler → CytoTable → AnnData)
-produce files that are almost always *structurally* valid — they open fine,
-they have a matrix, they have an index — while still being unusable for
-downstream analysis or model training for reasons no file format can catch
-on its own:
+Cell Painting pipelines can produce AnnData files that are structurally valid
+and load successfully while still being semantically incomplete or unsuitable
+for reliable downstream analysis.
 
-- Plate/well/site/cell identifiers are missing, inconsistent, or ambiguous
-  across a merged multi-batch dataset.
-- Control annotations are absent or use unrecognized labels, silently
-  breaking normalization and QC.
-- Segmentation, feature-extraction, and image-acquisition provenance was
-  never recorded, so results can't be reproduced or audited.
-- It's unclear whether a dataset is single-cell, well-aggregated, or
-  treatment-aggregated, and whether `.X` holds raw, normalized, or
-  aggregated values.
-- Feature columns are constant, mostly missing, or non-finite in ways that
-  silently degrade a downstream model, and nobody notices until training
-  fails or produces garbage.
+Examples include:
 
-These are exactly the kind of silent, structurally-invisible problems that
-turn into wasted compute, retracted results, or a frustrating multi-hour
-debugging session three pipeline stages downstream. `cp-anndata-validator`
-turns them into an explicit, structured, actionable report *before* that
-happens — as a five-second CI gate, not a manual audit.
+- Plate, well, site, cell, object, or perturbation identifiers are missing,
+  inconsistent, or ambiguous.
+- Control and treatment annotations are absent or use unrecognised labels.
+- Image acquisition, segmentation, and feature-extraction provenance has not
+  been recorded.
+- It is unclear whether a dataset contains single-cell, well-level, or
+  treatment-level profiles.
+- It is unclear whether `.X` contains raw, normalised, corrected, or aggregated
+  values.
+- Feature names do not identify their cellular compartment or measurement
+  family.
+- Feature matrices contain missing, non-finite, or constant values.
+- Dataset licence, schema version, batch, source, or experiment metadata is
+  missing.
+- Aggregated profiles do not describe how they were derived.
 
-## How this complements CytoTable
+These problems may not prevent the file from opening, but they can undermine
+normalisation, quality control, reproducibility, model development, dataset
+integration, and reuse.
 
-[CytoTable](https://github.com/cytomining/CytoTable) is a data-harmonization
-and serialization tool: it takes image-based profiling outputs — CellProfiler
-(`.csv`/`.sqlite`), cytominer-database (`.sqlite`), DeepProfiler (`.npz`), or
-other sources such as IN Carta — and writes them into analysis-ready Parquet
-or AnnData files, typically for use with [Pycytominer](https://github.com/cytomining/pycytominer)
-or other downstream tooling.
+Cell Painting AnnData Validator turns these concerns into explicit,
+machine-readable findings suitable for local validation and CI workflows.
 
-`cp-anndata-validator` picks up *after* that step: it validates an AnnData
-object that already exists — including, but not limited to, one CytoTable
-produced — for semantic correctness, metadata completeness, provenance, and
-AI-readiness. It is read-only and never writes, converts, or "fixes" a file;
-it returns a structured, renderable report (`Issue`/`Report` objects;
-console/JSON/HTML) instead.
+## How it complements CytoTable
 
-The two tools address different, complementary problems and are meant to be
-used together, not as alternatives: CytoTable answers "can I get this data
-into AnnData?"; `cp-anndata-validator` answers "is this AnnData file actually
-trustworthy and complete enough to build on?" A CytoTable-produced file can
-be perfectly well-formed AnnData and still fail several
-`cp-anndata-validator` checks — for example, if provenance metadata wasn't
-carried through the conversion, or a control-annotation column uses an
-unrecognized label — which is exactly the gap this package exists to close.
+[CytoTable](https://github.com/cytomining/CytoTable) harmonises image-based
+profiling outputs from tools and formats such as CellProfiler, DeepProfiler,
+cytominer-database, and IN Carta into analysis-friendly representations,
+including Parquet and AnnData.
 
-## Install
+Cell Painting AnnData Validator starts after an AnnData object already exists,
+whether it was generated by CytoTable or another workflow.
+
+The tools address complementary questions:
+
+- **CytoTable:** How can image-based profiling output be harmonised and
+  represented in an analysis-friendly format?
+- **Cell Painting AnnData Validator:** Is this AnnData object semantically
+  complete, internally consistent, documented, and sufficiently traceable for
+  its intended downstream use?
+
+A file can be valid AnnData while still lacking identifiers, controls,
+provenance, licence information, aggregation metadata, or a clear processing
+stage.
+
+Cell Painting AnnData Validator reports those issues without modifying the
+input file.
+
+## Installation
+
+### Requirements
+
+- Python 3.12 or newer
+- [`uv`](https://docs.astral.sh/uv/) recommended for development and local use
+
+### Install from source
+
+The package has not yet been published to PyPI.
+
+Clone the repository:
 
 ```bash
-uv add cp-anndata-validator
-# or
-pip install cp-anndata-validator
+git clone https://github.com/ronfinn/cell-painting-anndata-validator.git
+cd cell-painting-anndata-validator
 ```
 
-(Not yet published to PyPI — see [Limitations](#limitations). Until then,
-install from a local clone: `uv sync` then `uv run cp-validate ...`, or
-`uv build && pip install dist/cp_anndata_validator-*.whl`.)
-
-## Five-minute quick start
+Create the environment and install dependencies:
 
 ```bash
-# 1. Get a real dataset, or generate three small synthetic ones to try
-#    right now (valid single-cell, valid well-level, and a deliberately
-#    broken example) -- see examples/README.md for what's in each.
+uv sync
+```
+
+Confirm that the CLI is available:
+
+```bash
+uv run cp-validate --help
+uv run cp-validate schema list
+```
+
+Run validation:
+
+```bash
+uv run cp-validate validate experiment.h5ad
+```
+
+### Install the locally built wheel
+
+Build the package:
+
+```bash
+uv build
+```
+
+Install the wheel into another environment:
+
+```bash
+python -m pip install dist/cp_anndata_validator-0.1.0-py3-none-any.whl
+```
+
+The command can then be used without `uv run`:
+
+```bash
+cp-validate validate experiment.h5ad
+```
+
+## Quick start
+
+### 1. Generate the synthetic examples
+
+```bash
 uv run python examples/generate_examples.py
-
-# 2. Validate one. Profile level and schema auto-detect by default.
-uv run cp-validate examples/valid_single_cell.h5ad
-# cp-anndata-validator v0.1.0
-# ...
-# No issues found.
-# Status: PASS   (exit code 0)
-
-# 3. Try the broken one -- several independent, understandable problems at once.
-uv run cp-validate examples/invalid_example.h5ad --profile-level single-cell
-# ... a table of IDENT001/INDEX001/CTRL001/LICENSE001/... issues ...
-# Status: FAIL   (exit code 1)
-
-# 4. Get a shareable, self-contained HTML report (safe to open, escapes
-#    all dataset-derived content), or a deterministic JSON report for CI.
-uv run cp-validate examples/invalid_example.h5ad --profile-level single-cell \
-    --report report.html
-uv run cp-validate examples/valid_single_cell.h5ad --report report.json
-
-# 5. Point it at your own dataset. If it's JUMP-style, use the compatibility preset.
-uv run cp-validate your_experiment.h5ad --schema jump-cp
 ```
 
-Or, from Python:
+This creates:
+
+```text
+examples/valid_single_cell.h5ad
+examples/valid_well_level.h5ad
+examples/invalid_example.h5ad
+```
+
+The generated `.h5ad` files are ignored by Git and are not committed to the
+repository.
+
+### 2. Validate a valid single-cell dataset
+
+```bash
+uv run cp-validate validate examples/valid_single_cell.h5ad
+```
+
+Expected result:
+
+```text
+No issues found.
+
+Counts: 0 issue(s)
+Status: PASS
+```
+
+Expected exit code:
+
+```text
+0
+```
+
+### 3. Validate a valid well-level dataset
+
+```bash
+uv run cp-validate validate \
+  examples/valid_well_level.h5ad \
+  --profile-level well
+```
+
+Use the JUMP compatibility preset:
+
+```bash
+uv run cp-validate validate \
+  examples/valid_well_level.h5ad \
+  --schema jump-cp \
+  --profile-level well
+```
+
+### 4. Validate the deliberately invalid example
+
+```bash
+uv run cp-validate validate \
+  examples/invalid_example.h5ad \
+  --profile-level single-cell
+```
+
+This example intentionally contains missing identifiers, duplicate
+observations, incomplete provenance, missing dataset metadata, unsuitable
+feature names, and a non-finite matrix value.
+
+Expected result:
+
+```text
+Status: FAIL
+```
+
+Expected exit code:
+
+```text
+1
+```
+
+### 5. Generate reports
+
+HTML:
+
+```bash
+uv run cp-validate validate \
+  examples/invalid_example.h5ad \
+  --profile-level single-cell \
+  --report examples/invalid_example.html
+```
+
+JSON:
+
+```bash
+uv run cp-validate validate \
+  examples/valid_single_cell.h5ad \
+  --report examples/valid_single_cell.json
+```
+
+Existing report files are not overwritten unless `--force` is supplied.
+
+```bash
+uv run cp-validate validate \
+  examples/invalid_example.h5ad \
+  --profile-level single-cell \
+  --report examples/invalid_example.html \
+  --force
+```
+
+## What it validates
+
+The validator provides checks covering the following areas.
+
+### AnnData structure
+
+- File readability
+- Non-empty observations and variables
+- `.X` shape consistency
+- Observation-index uniqueness
+- Variable-index uniqueness
+- `.layers` shape consistency
+- `.obsm` observation-axis consistency
+- `.varm` variable-axis consistency
+- Numeric matrix compatibility
+- Missing and non-finite matrix values
+
+### Identifiers and profile granularity
+
+- Plate identifiers
+- Well identifiers
+- Site or field-of-view identifiers
+- Cell or object identifiers
+- Perturbation identifiers
+- Duplicate semantic observation identifiers
+- Single-cell, well-level, and treatment-level profile consistency
+
+### Controls and treatments
+
+- Control and treatment annotation columns
+- Recognised control classes
+- Perturbation modality
+- Negative-control representation
+- Treatment metadata
+
+### Features
+
+- Feature-name completeness
+- Feature-name uniqueness
+- Cellular compartment naming
+- Measurement-family naming
+- Constant or unsuitable features
+- Basic matrix-readiness concerns
+
+### Metadata and provenance
+
+- Batch metadata
+- Source metadata
+- Experiment metadata
+- Dataset schema identifier
+- Dataset schema version
+- Dataset licence
+- Processing stage
+- Image provenance
+- Segmentation provenance
+- Feature-extraction provenance
+- Aggregation provenance
+
+### Structured findings
+
+Each finding contains:
+
+- Rule code
+- Severity
+- Category
+- AnnData location
+- Human-readable message
+- Supporting evidence where appropriate
+- Suggested remediation
+- Check name
+
+Rule codes are intended to remain stable within compatible releases. See
+[`docs/checks.md`](docs/checks.md) for the definitive rule catalogue.
+
+## Profile levels
+
+Cell Painting AnnData objects may be represented at different levels of
+granularity.
+
+| Profile level | One observation represents | Typical required identifiers |
+|---|---|---|
+| `single-cell` | One segmented cell or object | Plate, well, site, and cell/object identifier |
+| `well` | One aggregated plate-well profile | Plate and well identifier |
+| `treatment` | One aggregated perturbation profile | Perturbation identifier and aggregation provenance |
+
+The validator can infer profile level from metadata and observation
+cardinality:
+
+```bash
+uv run cp-validate validate experiment.h5ad
+```
+
+It can also be declared explicitly:
+
+```bash
+uv run cp-validate validate \
+  experiment.h5ad \
+  --profile-level single-cell
+```
+
+```bash
+uv run cp-validate validate \
+  experiment.h5ad \
+  --profile-level well
+```
+
+```bash
+uv run cp-validate validate \
+  experiment.h5ad \
+  --profile-level treatment
+```
+
+Detection may return an ambiguous result rather than silently choosing an
+unsupported profile level.
+
+See [`docs/profile-levels.md`](docs/profile-levels.md) for details.
+
+## AnnData mapping
+
+The validator interprets AnnData slots as follows.
+
+| AnnData element | Expected Cell Painting content |
+|---|---|
+| `.X` | Primary numerical feature matrix with shape `(n_obs, n_vars)` |
+| `.obs` | Profile identifiers, controls, treatments, batch, source, and experimental annotations |
+| `.var` | Feature-level metadata such as feature name, compartment, measurement family, and channel |
+| `.uns` | Schema, licence, processing stage, experiment metadata, provenance, and aggregation metadata |
+| `.obsm` | Observation-aligned multidimensional arrays such as embeddings or spatial coordinates |
+| `.varm` | Feature-aligned multidimensional arrays |
+| `.layers` | Alternative matrices such as raw, normalised, corrected, or feature-selected values |
+
+The validator does not require every dataset to use one exact physical column
+name. Canonical semantic fields are resolved through schema-defined aliases.
+
+See [`docs/anndata-mapping.md`](docs/anndata-mapping.md) for the complete
+mapping and suggested metadata structures.
+
+## Schemas
+
+A schema is a versioned YAML document that defines:
+
+- Canonical semantic fields
+- Accepted column-name aliases
+- Required fields by profile level
+- Expected feature compartments
+- Expected measurement families
+- Recognised control annotations
+- Schema metadata
+
+### Built-in schemas
+
+List the available schemas:
+
+```bash
+uv run cp-validate schema list
+```
+
+Inspect a schema:
+
+```bash
+uv run cp-validate schema show generic-cell-painting
+```
+
+```bash
+uv run cp-validate schema show jump-cp
+```
+
+The package currently includes:
+
+### `generic-cell-painting`
+
+A vendor-neutral schema that supports common Cell Painting naming conventions
+without requiring one upstream pipeline or column spelling.
+
+### `jump-cp`
+
+A compatibility preset based on public JUMP Cell Painting Consortium metadata
+conventions and common cytomining feature-naming patterns.
+
+It is **not** an official or JUMP-endorsed AnnData standard.
+
+See [`docs/jump-cp-derivation.md`](docs/jump-cp-derivation.md) for its sources,
+scope, and limitations.
+
+### Custom schemas
+
+Use a custom schema file:
+
+```bash
+uv run cp-validate validate \
+  experiment.h5ad \
+  --schema ./my-lab-schema.yaml
+```
+
+See [`docs/schemas.md`](docs/schemas.md) for the complete schema format.
+
+## Reports
+
+### Console report
+
+Console output is designed for interactive use and CI logs.
+
+```bash
+uv run cp-validate validate experiment.h5ad
+```
+
+### JSON report
+
+JSON output is deterministic and suitable for programmatic processing.
+
+```bash
+uv run cp-validate validate \
+  experiment.h5ad \
+  --report validation-report.json
+```
+
+### HTML report
+
+HTML output is self-contained and escapes dataset-derived content.
+
+```bash
+uv run cp-validate validate \
+  experiment.h5ad \
+  --report validation-report.html
+```
+
+### Current report-path limitation
+
+The current alpha release records the resolved input-file path in generated
+HTML and JSON reports.
+
+This is not a credential leak, but it may expose a local username or directory
+structure when a report is shared publicly.
+
+Review or redact generated reports before sharing them outside your local
+environment. A privacy-preserving display-path implementation is planned.
+
+## CLI reference
+
+Validate a dataset:
+
+```bash
+cp-validate validate experiment.h5ad
+```
+
+Choose a schema:
+
+```bash
+cp-validate validate experiment.h5ad --schema jump-cp
+```
+
+Declare profile level:
+
+```bash
+cp-validate validate \
+  experiment.h5ad \
+  --profile-level single-cell
+```
+
+Generate HTML:
+
+```bash
+cp-validate validate \
+  experiment.h5ad \
+  --report report.html
+```
+
+Generate JSON:
+
+```bash
+cp-validate validate \
+  experiment.h5ad \
+  --report report.json
+```
+
+Treat warnings as failures:
+
+```bash
+cp-validate validate experiment.h5ad --strict
+```
+
+Suppress console output while writing a report:
+
+```bash
+cp-validate validate \
+  experiment.h5ad \
+  --quiet \
+  --report report.json
+```
+
+Allow report overwrite:
+
+```bash
+cp-validate validate \
+  experiment.h5ad \
+  --report report.json \
+  --force
+```
+
+Force backed loading:
+
+```bash
+cp-validate validate experiment.h5ad --backed
+```
+
+Force in-memory loading:
+
+```bash
+cp-validate validate experiment.h5ad --no-backed
+```
+
+Set the maximum number of sampled rows for bounded numerical checks:
+
+```bash
+cp-validate validate \
+  experiment.h5ad \
+  --sample-rows 10000
+```
+
+Schema commands:
+
+```bash
+cp-validate schema list
+cp-validate schema show jump-cp
+```
+
+Full CLI documentation is available in [`docs/cli.md`](docs/cli.md).
+
+## Python API
+
+Basic validation:
 
 ```python
 from cp_anndata_validator import validate
 
-report = validate("examples/valid_single_cell.h5ad")
-print(report.status)          # "pass" or "fail"
-print(len(report.issues))     # 0
+report = validate("experiment.h5ad")
+
+print(report.status)
+print(len(report.issues))
+
+for issue in report.issues:
+    print(
+        issue.code,
+        issue.severity,
+        issue.location,
+        issue.message,
+    )
 ```
 
-## Features
-
-- **Structured issues, not text.** Every finding is a stable `Issue` with a
-  rule code, severity, category, AnnData location, message, and
-  remediation — usable programmatically or rendered as console/JSON/HTML.
-- **Data-driven schemas.** Canonical fields (plate, well, perturbation, ...)
-  resolve via configurable aliases, so column-naming conventions don't need
-  to match exactly. Ships `generic-cell-painting` and a `jump-cp`
-  compatibility preset; custom schema YAML files are also supported.
-- **Explainable profile-level detection.** Auto-detects `single-cell`,
-  `well`, or `treatment` granularity, with an explicit override and a
-  human-readable explanation for how detection was decided.
-- **Sparse- and backed-safe.** Numeric checks never densify a full sparse
-  matrix; large/backed files are validated via bounded row sampling.
-- **30+ built-in checks** emitting **45+ permanent, stable rule codes**
-  across **15 categories** — structure, identifiers, profile consistency,
-  annotations, features, matrix/slot semantics, metadata, provenance,
-  schema/licence declarations, aggregation, and AI-readiness. Counts as of
-  this release; see [`docs/checks.md`](docs/checks.md) for the current,
-  definitive catalogue (a check can emit more than one rule code).
-
-## AnnData mapping
-
-`cp-anndata-validator` interprets AnnData slots as follows (never writing
-to any of them — see [`docs/anndata-mapping.md`](docs/anndata-mapping.md)
-for the complete table and suggested `uns` metadata shapes):
-
-| Slot | Expected content |
-|---|---|
-| `.X` | The primary feature matrix: one row per observation, one column per feature; numeric; sparse or dense; shape must equal `(n_obs, n_vars)`. |
-| `.obs` | Identifier columns (plate/well/site/cell/perturbation/modality) and annotations (control type, batch, source), matched via schema aliases, not fixed names. |
-| `.var` | One row per feature; names expected to be `<compartment>_<measurement family>_...` (for example `Cells_AreaShape_Area`). |
-| `.uns` | Dataset-level metadata: `schema_id`/`schema_version`, `processing_stage`, `licence`, `experiment`, `image_provenance`, `segmentation_provenance`, `feature_extraction_provenance`, `aggregation` (well/treatment profiles). |
-| `.obsm` / `.varm` | Per-observation/per-feature arrays; first dimension must match `n_obs`/`n_vars`. |
-| `.layers` | Alternative matrices; shape must match `.X`, and each layer should declare its own processing stage. |
-
-## Profile levels
-
-Cell Painting AnnData objects are commonly stored at one of three
-granularities (full detection algorithm in
-[`docs/profile-levels.md`](docs/profile-levels.md)):
-
-| Level | One row per... | Typically requires |
-|---|---|---|
-| `single-cell` | segmented cell/object | plate, well, site, cell/object identifier |
-| `well` | plate + well | plate, well identifier |
-| `treatment` | perturbation | perturbation identifier, aggregation provenance |
-
-You can declare it explicitly (`--profile-level well`) or let
-`cp-anndata-validator` auto-detect it from column presence and row
-cardinality; detection can legitimately come back **ambiguous**
-(`PROFILE002`) rather than silently guessing, and always reports *why* a
-level was or wasn't chosen.
-
-## Supported checks and rule codes
-
-**30+ checks** across **15 categories**: structure/index-uniqueness,
-identifiers, profile consistency, annotations, features, matrix/slot
-semantics, metadata, image/segmentation/feature-extraction provenance,
-schema/licence declarations, aggregation, and AI-readiness. Every check
-emits one or more permanent, stable rule codes (`IDENT001`, `MATRIX002`,
-`AGG003`, ...) — **45+ codes** are currently defined. See the complete,
-current catalogue with exact severities, meanings, and remediation text in
-[`docs/checks.md`](docs/checks.md) — that page, not this README, is the
-definitive source for exact counts as checks are added over time. A few
-representative examples:
-
-| Code | Severity | Meaning |
-|---|---|---|
-| `IDENT001`-`IDENT005` | error | A canonical identifier field (plate/well/site/cell_id/perturbation_id) required by the effective profile level didn't resolve. |
-| `PROFILE002` | information | Profile-level auto-detection was ambiguous; pass `--profile-level` to disambiguate. |
-| `MATRIX002` | warning | `.X` contains non-finite values (checked without densifying). |
-| `CTRL003` | warning | No negative control (`negcon`) annotation was found. |
-| `AGG001`/`AGG003` | error/warning | Aggregation method / source profile level not declared for a well- or treatment-level profile. |
-| `ENGINE001` | error | A check raised unexpectedly; the run continues, isolated to this one issue. |
-
-## Schemas
-
-A schema is a versioned, data-driven YAML document mapping canonical
-semantic fields (`plate`, `well`, `perturbation_id`, ...) to column-name
-aliases, per-profile-level requirements, and expected feature-name
-compartments/measurement families. Full format in
-[`docs/schemas.md`](docs/schemas.md).
-
-- **`generic-cell-painting`** (v0.1.0) — vendor-neutral; doesn't assume any
-  single upstream pipeline's exact column spelling.
-- **`jump-cp`** (v0.1.0) — a **compatibility preset based on public [JUMP
-  Cell Painting Consortium](https://jump-cellpainting.broadinstitute.org/)
-  metadata conventions** (`Metadata_Plate`, `Metadata_JCP2022`, ...) and
-  [`pycytominer`](https://github.com/cytomining/pycytominer) feature-naming
-  conventions. **It is not an official JUMP-endorsed AnnData schema** — see
-  [`docs/jump-cp-derivation.md`](docs/jump-cp-derivation.md) for exactly
-  which public sources it was derived from and what wasn't carried over.
-
-Bring your own schema with `--schema ./my-lab-schema.yaml` — no code
-changes required.
-
-```bash
-cp-validate schema list
-cp-validate schema show jump-cp
-```
-
-## Python API
+Select a schema and profile level:
 
 ```python
-from cp_anndata_validator import validate, ProfileLevel
+from cp_anndata_validator import ProfileLevel, validate
 
 report = validate(
     "experiment.h5ad",
-    schema="jump-cp",                        # or "generic-cell-painting", or a path
-    profile_level=ProfileLevel.SINGLE_CELL,   # or None to auto-detect
-    strict=False,                             # True: warnings also fail
+    schema="jump-cp",
+    profile_level=ProfileLevel.SINGLE_CELL,
+    strict=False,
 )
-
-print(report.status)                 # "pass" or "fail"
-print(report.counts.by_severity)     # {Severity.ERROR: 2, Severity.WARNING: 1}
-for issue in report.issues:
-    print(issue.code, issue.severity, issue.location, issue.message)
 ```
+
+Render reports:
 
 ```python
-from cp_anndata_validator.reporting import render_console, render_html, render_json
+from pathlib import Path
+
+from cp_anndata_validator import validate
+from cp_anndata_validator.reporting import (
+    render_console,
+    render_html,
+    render_json,
+)
+
+report = validate("experiment.h5ad")
 
 print(render_console(report))
-open("report.html", "w").write(render_html(report))   # self-contained, escaped
-open("report.json", "w").write(render_json(report))   # deterministic
+
+Path("report.html").write_text(
+    render_html(report),
+    encoding="utf-8",
+)
+
+Path("report.json").write_text(
+    render_json(report),
+    encoding="utf-8",
+)
 ```
 
-Raises `LoadError` (unreadable/corrupt file) or `SchemaError` (bad schema)
-before any checks run. Full reference, including running individual checks
-directly: [`docs/python-api.md`](docs/python-api.md).
+The public API may raise a loading or schema error before validation checks run
+when the input file or selected schema cannot be used.
 
-## CLI examples
+See [`docs/python-api.md`](docs/python-api.md) for the complete reference.
+
+## Examples
+
+The repository includes a generator for three small synthetic datasets:
 
 ```bash
-cp-validate experiment.h5ad
-cp-validate experiment.h5ad --schema jump-cp
-cp-validate experiment.h5ad --profile-level single-cell
-cp-validate experiment.h5ad --report report.html      # self-contained, escaped HTML
-cp-validate experiment.h5ad --report report.json      # deterministic JSON
-cp-validate experiment.h5ad --strict                  # warnings also fail
-cp-validate experiment.h5ad --report report.json --force   # allow overwrite
-cp-validate schema list
-cp-validate schema show jump-cp
+uv run python examples/generate_examples.py
 ```
 
-Exit codes: `0` no errors found, `1` validation errors found (or, under
-`--strict`, warnings found), `2` the validator couldn't run at all (bad
-file, bad schema, bad arguments, or an unexpected execution failure — no
-report is produced). Full flag reference:
-[`docs/cli.md`](docs/cli.md).
+The examples demonstrate:
+
+- A valid single-cell dataset
+- A valid well-level dataset
+- A deliberately invalid dataset with several independent problems
+
+See [`examples/README.md`](examples/README.md) for the expected findings and
+commands.
+
+The generated `.h5ad`, `.html`, and `.json` files are ignored by Git.
+
+## Exit codes
+
+| Exit code | Meaning |
+|---|---|
+| `0` | Validation completed without error-severity findings |
+| `1` | Validation completed and errors were found |
+| `1` with `--strict` | Validation completed and errors or warnings were found |
+| `2` | Validation could not run because of an invalid file, schema, argument, or runtime failure |
+
+Validation findings and runtime failures are intentionally distinguished.
+
+A dataset can fail validation with exit code `1` while the validator itself is
+working correctly.
 
 ## Limitations
 
-v0.1 deliberately defers some things — see
-[`docs/limitations.md`](docs/limitations.md) for full detail. Headlines:
+The current alpha release deliberately has a limited scope.
 
-- Numeric checks on very large **backed** datasets are statistical (bounded
-  row sampling), not exhaustive, by design — never full-matrix.
-- Schema alias matching is exact (case-/whitespace-insensitive), not fuzzy;
-  no typo tolerance.
-- `.uns` metadata blocks are checked for presence and plausible shape, not
-  validated against an exhaustive nested schema.
-- No custom-schema authoring wizard yet — hand-write the YAML.
-- Not yet published to PyPI (installable locally via `uv build`).
+- Numeric checks on large backed datasets use bounded row sampling rather than
+  reading or densifying the complete matrix.
+- Alias matching is case- and whitespace-insensitive but not fuzzy or
+  typo-tolerant.
+- `.uns` metadata blocks are checked for presence and plausible structure, not
+  yet against exhaustive nested schemas.
+- Custom schemas must currently be written manually.
+- Generated reports currently include the resolved input-file path.
+- The package has not yet been published to PyPI.
+- The built-in JUMP preset is a compatibility preset, not an official JUMP
+  AnnData standard.
+- Basic AI-readiness checks identify technical concerns such as non-finite
+  values, constant features, missing metadata, and incomplete provenance.
+  They do not certify biological validity, experimental design quality,
+  absence of confounding, appropriate normalisation, or expected model
+  performance.
+- Passing validation does not prove that a dataset is scientifically correct
+  or suitable for every downstream use.
+
+See [`docs/limitations.md`](docs/limitations.md) for more detail.
 
 ## Architecture
 
-Eight conceptual layers, each independently testable:
+The project separates validation logic from loading, schemas, orchestration,
+reporting, and the CLI.
 
+```text
+src/cp_anndata_validator/
+├── api.py
+├── loading.py
+├── orchestrator.py
+├── profiles.py
+├── sampling.py
+├── checks/
+├── cli/
+├── models/
+├── reporting/
+└── schema/
 ```
-1. AnnData loading & safe inspection    loading.py, sampling.py, profiles.py
-2. Versioned schema definitions         schema/  (models, loader, alias resolution)
-3. Independent validation checks        checks/  (one module per category)
-4. Validation orchestration             orchestrator.py
-5. Structured issue & report models     models/  (Issue, Report, ...)
-6. Console/JSON/HTML renderers          reporting/  (pure functions, no validation logic)
-7. Typer CLI                            cli/  (delegates to api.py + reporting/)
-8. Public Python API                    api.py  (validate() -- the one integration point)
-```
 
-Checks never print or raise for expected validation failures — they return
-`list[Issue]`; the orchestrator isolates a check's unexpected exception
-into a single `ENGINE001` issue rather than crashing the whole run. Full
-layout and how to add a check/schema:
-[`docs/contributing.md`](docs/contributing.md).
+Conceptually, the package contains:
 
-## Roadmap
+1. AnnData loading and safe inspection
+2. Versioned schema definitions
+3. Independent validation checks
+4. Validation orchestration
+5. Structured issue and report models
+6. Console, JSON, and HTML renderers
+7. Typer CLI
+8. Public Python API
 
-Beyond v0.1 (not committed to a timeline; see
-[`docs/limitations.md`](docs/limitations.md) for the authoritative current
-gaps):
+Expected dataset-quality problems are returned as structured issues rather
+than raised as exceptions.
 
-- Publish to PyPI.
-- Fuzzy/typo-tolerant alias matching, with a confidence score surfaced on
-  the resolved field.
-- An interactive schema-authoring helper (suggest aliases from an existing
-  `.obs`/`.var`).
-- Deeper `.uns` provenance-block schema validation (beyond presence/shape).
-- Additional built-in schemas for other common Cell Painting conventions,
-  each with its own derivation doc (see `docs/jump-cp-derivation.md` as the
-  template).
-- Optional parallel check execution for very wide/backed datasets.
+An unexpected exception inside one check is isolated so that other checks can
+continue where possible.
 
-## Contributing
+## Development
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for ground rules and PR
-expectations, and [`docs/contributing.md`](docs/contributing.md) for the
-detailed dev workflow, repository layout, and step-by-step instructions for
-adding a check or schema. Quick version:
+Clone the repository:
 
 ```bash
-uv sync
-uv run pytest
+git clone https://github.com/ronfinn/cell-painting-anndata-validator.git
+cd cell-painting-anndata-validator
+```
+
+Install all dependency groups:
+
+```bash
+uv sync --all-groups
+```
+
+Run the quality suite:
+
+```bash
 uv run ruff check .
 uv run ruff format --check .
 uv run mypy src
+uv run pytest
 uv build
 ```
 
-## Documentation
+Generate the examples:
 
-Full set in [`docs/`](docs/index.md): [CLI reference](docs/cli.md),
-[Python API](docs/python-api.md), [schema format](docs/schemas.md),
-[rule-code catalogue](docs/checks.md),
-[profile-level detection](docs/profile-levels.md),
-[AnnData mapping](docs/anndata-mapping.md),
-[`jump-cp` provenance](docs/jump-cp-derivation.md), and
-[known limitations](docs/limitations.md).
+```bash
+uv run python examples/generate_examples.py
+```
 
-## Licence and citation
+Validate the examples:
+
+```bash
+uv run cp-validate validate examples/valid_single_cell.h5ad
+
+uv run cp-validate validate \
+  examples/valid_well_level.h5ad \
+  --profile-level well
+
+uv run cp-validate validate \
+  examples/invalid_example.h5ad \
+  --profile-level single-cell
+```
+
+See [`docs/contributing.md`](docs/contributing.md) for the repository layout and
+instructions for adding checks or schemas.
+
+## Roadmap
+
+Potential future work includes:
+
+- PyPI publication
+- Privacy-preserving display paths in reports
+- Additional built-in schemas
+- Fuzzy alias matching with confidence scores
+- Interactive schema-authoring support
+- More detailed nested provenance validation
+- Additional batch, control, and experimental-design checks
+- Optional integrations with data catalogues and CI platforms
+- Expanded validation against real-world Cell Painting datasets
+- Improved support for remote and Zarr-backed datasets
+
+Roadmap items are not commitments to a particular release date.
+
+## Contributing
+
+Contributions, bug reports, real-world validation examples, and schema
+feedback are welcome.
+
+Particularly valuable feedback includes:
+
+- Missing metadata aliases
+- Valid AnnData representations that produce false positives
+- Cell Painting conventions not covered by the built-in schemas
+- Unclear messages or remediation guidance
+- Large-dataset performance issues
+- Additional provenance or data-quality checks
+- Reproducible examples of unexpected behaviour
+
+Before opening a pull request, run:
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy src
+uv run pytest
+uv build
+```
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for contribution expectations.
+
+## Security and privacy
+
+Do not include confidential datasets, credentials, access tokens, patient
+information, or proprietary metadata in public issues.
+
+When reporting a problem:
+
+- Prefer a small synthetic reproduction.
+- Remove local paths and usernames.
+- Remove partner, company, subject, and project identifiers.
+- Do not upload real datasets unless their licence explicitly permits it.
+
+The validator runs against local files and does not require uploading the
+dataset to a hosted validation service.
+
+## Licence and attribution
 
 Copyright © 2026 Ron Finn.
 
-This project is licensed under the Apache License 2.0. Please preserve the
-applicable licence and attribution notices when redistributing or modifying
-the software.
+This project is licensed under the
+[Apache License 2.0](LICENSE).
 
-Academic and research users are encouraged to cite the project using the
-repository's `CITATION.cff` metadata.
+When redistributing or modifying the software, preserve the applicable
+licence and attribution notices.
+
+The Git commit history, tagged releases, and licence file provide a public
+record of the project's authorship and development.
+
+Formal citation metadata will be added with the first tagged public release.
+
+## Acknowledgements
+
+This project builds on the scientific Python, AnnData, Cell Painting,
+cytomining, and image-based profiling ecosystems.
+
+Relevant projects and communities include:
+
+- [AnnData](https://anndata.readthedocs.io/)
+- [CellProfiler](https://cellprofiler.org/)
+- [CytoTable](https://github.com/cytomining/CytoTable)
+- [Pycytominer](https://github.com/cytomining/pycytominer)
+- [JUMP Cell Painting Consortium](https://jump-cellpainting.broadinstitute.org/)
+- [CytoData Society](https://www.cytodata.org/)
+- [scverse](https://scverse.org/)
