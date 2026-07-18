@@ -55,3 +55,19 @@ fields:
     description: Data-generating site identifier.
 
 compartments: [Cells, Cytoplasm, Nuclei, Image]
+measurement_families:
+  [
+    AreaShape,
+    Intensity,
+    Texture,
+    RadialDistribution,
+    Granularity,
+    Neighbors,
+    Location,
+    Correlation,
+    Count,
+    Threshold,
+    Children,
+    Parent,
+    Number,
+  ]

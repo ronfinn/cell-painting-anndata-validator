@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from cp_anndata_validator.checks.registry import CheckContext, register_check
 from cp_anndata_validator.models.issue import Category, Issue, Severity
 from cp_anndata_validator.profiles import ProfileLevel
@@ -13,6 +15,25 @@ def _applies_to_aggregated_levels(ctx: CheckContext) -> bool:
     return ctx.profile.effective in _AGGREGATED_LEVELS
 
 
+def _aggregation_block(ctx: CheckContext) -> dict[str, Any] | None:
+    uns = ctx.handle.adata.uns
+    aggregation = uns.get("aggregation") if hasattr(uns, "get") else None
+    return aggregation if isinstance(aggregation, dict) else None
+
+
+def has_adequate_aggregation_provenance(ctx: CheckContext) -> bool:
+    """Whether ``uns['aggregation']`` documents both *how* and *from what* rows were derived.
+
+    "Adequate" means at least a declared ``method`` and a declared
+    ``source_level`` (the profile level the rows were aggregated from, for
+    example ``"single-cell"`` or ``"well"``). This is used by
+    :mod:`cp_anndata_validator.checks.identifiers` to decide whether a
+    treatment-level profile can skip requiring direct plate/well identifiers.
+    """
+    aggregation = _aggregation_block(ctx)
+    return bool(aggregation and aggregation.get("method") and aggregation.get("source_level"))
+
+
 @register_check(
     name="aggregation_provenance",
     category=Category.AGGREGATION,
@@ -20,12 +41,11 @@ def _applies_to_aggregated_levels(ctx: CheckContext) -> bool:
 )
 def check_aggregation_provenance(ctx: CheckContext) -> list[Issue]:
     """Well/treatment profiles must declare their aggregation method and replicate count."""
-    uns = ctx.handle.adata.uns
-    aggregation = uns.get("aggregation") if hasattr(uns, "get") else None
+    aggregation = _aggregation_block(ctx)
     level = ctx.profile.effective
     level_name = level.value if level else "aggregated"
 
-    if not isinstance(aggregation, dict) or not aggregation.get("method"):
+    if not aggregation or not aggregation.get("method"):
         return [
             Issue(
                 code="AGG001",
@@ -54,6 +74,26 @@ def check_aggregation_provenance(ctx: CheckContext) -> list[Issue]:
                 remediation=(
                     "Record the number of replicates aggregated per row in "
                     "uns['aggregation']['replicate_count']."
+                ),
+                check_name="aggregation_provenance",
+            )
+        ]
+
+    if not aggregation.get("source_level"):
+        return [
+            Issue(
+                code="AGG003",
+                severity=Severity.WARNING,
+                category=Category.AGGREGATION,
+                location="uns.aggregation",
+                message=(
+                    "No source profile level is declared for this aggregated profile "
+                    "(uns['aggregation']['source_level'])."
+                ),
+                evidence=None,
+                remediation=(
+                    "Record which profile level rows were aggregated from (for example "
+                    "'single-cell' or 'well') in uns['aggregation']['source_level']."
                 ),
                 check_name="aggregation_provenance",
             )

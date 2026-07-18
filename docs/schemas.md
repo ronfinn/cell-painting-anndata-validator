@@ -5,8 +5,10 @@ A schema is a versioned, data-driven YAML document describing:
 - which **canonical semantic fields** a dataset is expected to have (for
   example `plate`, `well`, `perturbation_id`),
 - which **column-name aliases** satisfy each canonical field,
-- which fields are **required for which profile level**, and
-- which feature-name **compartment prefixes** are expected.
+- which fields are **required for which profile level**,
+- which feature-name **compartment prefixes** are expected, and
+- which feature-name **measurement families** are expected (for example
+  `AreaShape`, `Intensity`, `Texture`).
 
 Schemas never contain code, and are parsed with `yaml.safe_load` only.
 Unknown top-level or per-field keys are rejected (not silently ignored) so a
@@ -43,6 +45,7 @@ fields:
   # ... more fields ...
 
 compartments: [Cells, Cytoplasm, Nuclei, Image]
+measurement_families: [AreaShape, Intensity, Texture]
 ```
 
 - `fields` maps a **canonical field name** (used internally and in issue
@@ -63,6 +66,11 @@ compartments: [Cells, Cytoplasm, Nuclei, Image]
   profile-level auto-detection (see [profile-levels.md](profile-levels.md)).
 - `compartments` drives the `FEAT001` check: every feature name should start
   with `"<compartment>_"` for one of the listed compartments.
+- `measurement_families` drives the `FEAT002` check: every feature name that
+  *did* match a compartment should be followed by `"<family>_"` for one of
+  the listed measurement families (for example `Cells_AreaShape_Area`).
+  Both `compartments` and `measurement_families` are optional; either check
+  is skipped entirely if its list is empty.
 
 ## Using a custom schema
 

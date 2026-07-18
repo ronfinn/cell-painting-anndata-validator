@@ -28,6 +28,29 @@ def check_batch_identifier_declared(ctx: CheckContext) -> list[Issue]:
     ]
 
 
+@register_check(name="source_identifier_declared", category=Category.METADATA)
+def check_source_identifier_declared(ctx: CheckContext) -> list[Issue]:
+    """A data-generating source/site identifier is not strictly required, but is worth noting."""
+    if ctx.resolved_schema.is_resolved("source"):
+        return []
+
+    return [
+        Issue(
+            code="META003",
+            severity=Severity.INFORMATION,
+            category=Category.METADATA,
+            location="obs.source",
+            message="No data-generating source/site identifier column was resolved.",
+            evidence=None,
+            remediation=(
+                "Add a source identifier column if this dataset spans multiple "
+                "data-generating sites or laboratories."
+            ),
+            check_name="source_identifier_declared",
+        )
+    ]
+
+
 @register_check(name="experiment_metadata_declared", category=Category.METADATA)
 def check_experiment_metadata_declared(ctx: CheckContext) -> list[Issue]:
     """Experiment-level metadata should be recorded in uns['experiment']."""

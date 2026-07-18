@@ -6,7 +6,10 @@ from pathlib import Path
 
 import anndata as ad
 
-from cp_anndata_validator.checks.aggregation import check_aggregation_provenance
+from cp_anndata_validator.checks.aggregation import (
+    check_aggregation_provenance,
+    has_adequate_aggregation_provenance,
+)
 from cp_anndata_validator.checks.registry import CheckContext
 from cp_anndata_validator.loading import AnnDataHandle
 from cp_anndata_validator.profiles import ProfileLevel, detect_profile_level
@@ -69,3 +72,38 @@ def test_flags_missing_replicate_count() -> None:
     issues = check_aggregation_provenance(ctx)
 
     assert [issue.code for issue in issues] == ["AGG002"]
+
+
+def test_flags_missing_source_level() -> None:
+    adata = make_treatment_level_adata()
+    adata.uns["aggregation"] = {"method": "median", "replicate_count": 4}
+    ctx = make_context(adata, declared=ProfileLevel.TREATMENT)
+
+    issues = check_aggregation_provenance(ctx)
+
+    assert [issue.code for issue in issues] == ["AGG003"]
+    assert issues[0].severity.value == "warning"
+
+
+def test_has_adequate_aggregation_provenance_true_for_valid_fixtures() -> None:
+    well_ctx = make_context(make_well_level_adata(), declared=ProfileLevel.WELL)
+    treatment_ctx = make_context(make_treatment_level_adata(), declared=ProfileLevel.TREATMENT)
+
+    assert has_adequate_aggregation_provenance(well_ctx) is True
+    assert has_adequate_aggregation_provenance(treatment_ctx) is True
+
+
+def test_has_adequate_aggregation_provenance_false_when_source_level_missing() -> None:
+    adata = make_treatment_level_adata()
+    adata.uns["aggregation"] = {"method": "median", "replicate_count": 4}
+    ctx = make_context(adata, declared=ProfileLevel.TREATMENT)
+
+    assert has_adequate_aggregation_provenance(ctx) is False
+
+
+def test_has_adequate_aggregation_provenance_false_when_missing_entirely() -> None:
+    adata = make_treatment_level_adata()
+    del adata.uns["aggregation"]
+    ctx = make_context(adata, declared=ProfileLevel.TREATMENT)
+
+    assert has_adequate_aggregation_provenance(ctx) is False

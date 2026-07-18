@@ -7,7 +7,10 @@ from pathlib import Path
 import anndata as ad
 import pandas as pd
 
-from cp_anndata_validator.checks.features import check_feature_compartments
+from cp_anndata_validator.checks.features import (
+    check_feature_compartments,
+    check_feature_measurement_families,
+)
 from cp_anndata_validator.checks.registry import CheckContext
 from cp_anndata_validator.loading import AnnDataHandle
 from cp_anndata_validator.profiles import ProfileLevel, ProfileLevelResult
@@ -39,3 +42,31 @@ def test_flags_features_without_a_known_compartment_prefix() -> None:
     assert [issue.code for issue in issues] == ["FEAT001"]
     assert "weird_feature" in issues[0].evidence
     assert "another_bad" in issues[0].evidence
+
+
+def test_measurement_families_passes_for_recognized_families() -> None:
+    ctx = make_context(make_single_cell_adata())
+    assert check_feature_measurement_families(ctx) == []
+
+
+def test_measurement_families_flags_unrecognized_family() -> None:
+    adata = make_single_cell_adata(n_vars=3)
+    adata.var_names = pd.Index(["Cells_AreaShape_Area", "Cells_FooBar_X", "Nuclei_Intensity_Mean"])
+    ctx = make_context(adata)
+
+    issues = check_feature_measurement_families(ctx)
+
+    assert [issue.code for issue in issues] == ["FEAT002"]
+    assert "Cells_FooBar_X" in issues[0].evidence
+    assert "Cells_AreaShape_Area" not in issues[0].evidence
+
+
+def test_measurement_families_skips_features_with_unmatched_compartment() -> None:
+    # "weird_feature" has no recognized compartment at all -- FEAT001's job, not FEAT002's.
+    adata = make_single_cell_adata(n_vars=2)
+    adata.var_names = pd.Index(["weird_feature", "Cells_AreaShape_Area"])
+    ctx = make_context(adata)
+
+    issues = check_feature_measurement_families(ctx)
+
+    assert issues == []

@@ -26,9 +26,17 @@ def _add_provenance_metadata(adata: ad.AnnData) -> None:
 
 
 def _add_aggregation_metadata(
-    adata: ad.AnnData, *, method: str = "median", replicate_count: int = 4
+    adata: ad.AnnData,
+    *,
+    method: str = "median",
+    replicate_count: int = 4,
+    source_level: str = "single-cell",
 ) -> None:
-    adata.uns["aggregation"] = {"method": method, "replicate_count": replicate_count}
+    adata.uns["aggregation"] = {
+        "method": method,
+        "replicate_count": replicate_count,
+        "source_level": source_level,
+    }
 
 
 def make_single_cell_adata(
@@ -137,7 +145,7 @@ def make_treatment_level_adata(
     adata.uns["schema_version"] = "1.0.0"
     adata.uns["processing_stage"] = "treatment_aggregated"
     _add_provenance_metadata(adata)
-    _add_aggregation_metadata(adata)
+    _add_aggregation_metadata(adata, source_level="well")
     return adata
 
 

@@ -9,6 +9,7 @@ import anndata as ad
 from cp_anndata_validator.checks.metadata import (
     check_batch_identifier_declared,
     check_experiment_metadata_declared,
+    check_source_identifier_declared,
 )
 from cp_anndata_validator.checks.registry import CheckContext
 from cp_anndata_validator.loading import AnnDataHandle
@@ -55,3 +56,19 @@ def test_experiment_metadata_flags_when_missing() -> None:
     issues = check_experiment_metadata_declared(ctx)
 
     assert [issue.code for issue in issues] == ["META002"]
+
+
+def test_source_identifier_flags_when_missing() -> None:
+    ctx = make_context(make_single_cell_adata())
+    issues = check_source_identifier_declared(ctx)
+
+    assert [issue.code for issue in issues] == ["META003"]
+    assert issues[0].severity.value == "information"
+
+
+def test_source_identifier_passes_when_resolved() -> None:
+    adata = make_single_cell_adata()
+    adata.obs["source_id"] = "site-1"
+    ctx = make_context(adata)
+
+    assert check_source_identifier_declared(ctx) == []

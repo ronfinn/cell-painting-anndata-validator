@@ -11,6 +11,7 @@ import pytest
 from scipy import sparse
 
 from cp_anndata_validator.checks.matrix import (
+    check_layer_processing_stage_declared,
     check_layer_shape_consistency,
     check_matrix_dtype,
     check_matrix_finite_values,
@@ -204,3 +205,41 @@ def test_processing_stage_declared_flags_missing_stage() -> None:
     issues = check_processing_stage_declared(ctx)
 
     assert [issue.code for issue in issues] == ["SLOT001"]
+
+
+def test_layer_processing_stage_declared_passes_without_layers() -> None:
+    ctx = make_context(make_single_cell_adata())
+    assert check_layer_processing_stage_declared(ctx) == []
+
+
+def test_layer_processing_stage_declared_passes_when_declared() -> None:
+    adata = make_single_cell_adata()
+    adata.layers["counts"] = adata.X.copy()
+    adata.uns["layer_processing_stages"] = {"counts": "raw"}
+    ctx = make_context(adata)
+
+    assert check_layer_processing_stage_declared(ctx) == []
+
+
+def test_layer_processing_stage_declared_flags_undeclared_layer() -> None:
+    adata = make_single_cell_adata()
+    adata.layers["counts"] = adata.X.copy()
+    ctx = make_context(adata)
+
+    issues = check_layer_processing_stage_declared(ctx)
+
+    assert [issue.code for issue in issues] == ["SLOT003"]
+    assert "counts" in issues[0].evidence
+
+
+def test_layer_processing_stage_declared_flags_partially_declared_layers() -> None:
+    adata = make_single_cell_adata()
+    adata.layers["counts"] = adata.X.copy()
+    adata.layers["normalized"] = adata.X.copy()
+    adata.uns["layer_processing_stages"] = {"counts": "raw"}
+    ctx = make_context(adata)
+
+    issues = check_layer_processing_stage_declared(ctx)
+
+    assert [issue.code for issue in issues] == ["SLOT003"]
+    assert issues[0].evidence == "normalized"

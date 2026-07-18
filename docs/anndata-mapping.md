@@ -5,13 +5,13 @@
 
 | Slot | Expected content | Checked by |
 |---|---|---|
-| `.X` | The primary feature matrix: one row per observation (cell/well/treatment), one column per feature. Must be numeric; sparse or dense; NaN/Inf are flagged but not rejected outright. | `checks/matrix.py` (`MATRIX001`, `MATRIX002`), `checks/structure.py` (`STRUCT002`) |
-| `.obs` | One row per observation, with identifier columns (plate/well/site/cell/perturbation) and annotation columns (control type, batch). Matched via schema aliases, not fixed names. | `checks/identifiers.py`, `checks/annotations.py`, `checks/metadata.py` |
-| `.var` | One row per feature; `var_names` are expected to be prefixed by a declared compartment (`Cells_`, `Cytoplasm_`, `Nuclei_`, `Image_`, ...). | `checks/features.py`, `checks/structure.py` (`INDEX002`) |
-| `.uns` | Free-form, dataset-level metadata: `schema_id`, `schema_version`, `processing_stage`, `licence`/`license`, `experiment`, `image_provenance`, `segmentation_provenance`, `feature_extraction_provenance`, `aggregation` (for well/treatment profiles). | `checks/schema_meta.py`, `checks/metadata.py`, `checks/provenance.py`, `checks/aggregation.py`, `checks/matrix.py` (`SLOT001`) |
+| `.X` | The primary feature matrix: one row per observation (cell/well/treatment), one column per feature. Must be numeric; sparse or dense; NaN/Inf are flagged but not rejected outright; its shape must equal `(n_obs, n_vars)`. | `checks/matrix.py` (`MATRIX001`, `MATRIX002`, `MATRIX003`), `checks/structure.py` (`STRUCT002`) |
+| `.obs` | One row per observation, with identifier columns (plate/well/site/cell/perturbation/perturbation modality) and annotation columns (control type, batch, source). Matched via schema aliases, not fixed names. | `checks/identifiers.py`, `checks/annotations.py`, `checks/metadata.py` |
+| `.var` | One row per feature; `var_names` are expected to be prefixed by a declared compartment (`Cells_`, `Cytoplasm_`, `Nuclei_`, `Image_`, ...) followed by a recognized measurement family (`AreaShape_`, `Intensity_`, `Texture_`, ...). | `checks/features.py`, `checks/structure.py` (`INDEX002`) |
+| `.uns` | Free-form, dataset-level metadata: `schema_id`, `schema_version`, `processing_stage`, `layer_processing_stages`, `licence`/`license`, `experiment`, `image_provenance`, `segmentation_provenance`, `feature_extraction_provenance`, `aggregation` (for well/treatment profiles). | `checks/schema_meta.py`, `checks/metadata.py`, `checks/provenance.py`, `checks/aggregation.py`, `checks/matrix.py` (`SLOT001`, `SLOT003`) |
 | `.obsm` | Per-observation arrays (embeddings, spatial coordinates, ...). First dimension must equal `n_obs`. | `checks/matrix.py` (`SLOT002`) |
 | `.varm` | Per-feature arrays (loadings, ...). First dimension must equal `n_vars`. | `checks/matrix.py` (`SLOT002`) |
-| `.layers` | Alternative versions of `.X` (raw counts, normalized values, ...). Every layer's shape must equal `.X`'s shape. | `checks/matrix.py` (`MATRIX004`) |
+| `.layers` | Alternative versions of `.X` (raw counts, normalized values, ...). Every layer's shape must equal `.X`'s shape, and each layer should have its own declared processing stage (see below) since `uns['processing_stage']` alone only describes `.X`. | `checks/matrix.py` (`MATRIX004`, `SLOT003`) |
 
 ## Suggested `.uns` metadata block shapes
 
@@ -30,8 +30,17 @@ adata.uns["image_provenance"] = {"microscope": "...", "illumination_correction":
 adata.uns["segmentation_provenance"] = {"tool": "CellProfiler", "version": "4.2.6"}
 adata.uns["feature_extraction_provenance"] = {"tool": "CellProfiler", "version": "4.2.6"}
 
-# well-level / treatment-level profiles only:
-adata.uns["aggregation"] = {"method": "median", "replicate_count": 4}
+# only if .layers holds data at a different processing stage than .X:
+adata.uns["layer_processing_stages"] = {"counts": "raw"}
+
+# well-level / treatment-level profiles only. `source_level` is the profile
+# level rows were aggregated *from* (what makes plate/well optional at
+# treatment level -- see IDENT006 in checks.md):
+adata.uns["aggregation"] = {
+    "method": "median",
+    "replicate_count": 4,
+    "source_level": "well",
+}
 ```
 
 See [checks.md](checks.md) for exactly which rule code each block's absence

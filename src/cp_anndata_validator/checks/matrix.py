@@ -186,3 +186,51 @@ def check_processing_stage_declared(ctx: CheckContext) -> list[Issue]:
             check_name="processing_stage_declared",
         )
     ]
+
+
+@register_check(name="layer_processing_stage_declared", category=Category.SLOT_SEMANTICS)
+def check_layer_processing_stage_declared(ctx: CheckContext) -> list[Issue]:
+    """Every entry in .layers should have its own declared processing stage.
+
+    X's stage alone (``uns['processing_stage']``, ``SLOT001``) doesn't say
+    anything about what a *layer* holds -- for example a 'counts' layer next
+    to a normalized X. Per-layer stages are declared in
+    ``uns['layer_processing_stages']`` (a mapping of layer name to stage).
+    """
+    adata = ctx.handle.adata
+    if not adata.layers:
+        return []
+
+    # anndata's Layers mapping can also iterate a phantom `None` key aliasing
+    # X itself (observed on anndata>=0.13); `bool(adata.layers)` correctly
+    # ignores it, but plain iteration does not, so it must be filtered here.
+    layer_names = sorted(name for name in adata.layers.keys() if name is not None)  # noqa: SIM118
+    if not layer_names:
+        return []
+
+    uns = adata.uns
+    declared = uns.get("layer_processing_stages") if hasattr(uns, "get") else None
+    declared = declared if isinstance(declared, dict) else {}
+
+    undeclared = [name for name in layer_names if not declared.get(name)]
+    if not undeclared:
+        return []
+
+    return [
+        Issue(
+            code="SLOT003",
+            severity=Severity.WARNING,
+            category=Category.SLOT_SEMANTICS,
+            location="uns.layer_processing_stages",
+            message=(
+                f"{len(undeclared)} of {len(layer_names)} layer(s) have no declared "
+                "processing stage."
+            ),
+            evidence=", ".join(undeclared[:5]),
+            remediation=(
+                "Declare each layer's processing stage in "
+                "uns['layer_processing_stages'][<layer name>]."
+            ),
+            check_name="layer_processing_stage_declared",
+        )
+    ]

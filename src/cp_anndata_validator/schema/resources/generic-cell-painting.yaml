@@ -31,6 +31,11 @@ fields:
     location: obs
     required_for: [treatment]
     description: Identifier of the perturbation applied to a well or treatment group.
+  perturbation_modality:
+    aliases: [perturbation_modality, modality, pert_type]
+    location: obs
+    required_for: []
+    description: Perturbation modality (for example compound, orf, crispr).
   control_type:
     aliases: [control_type, control_annotation, Metadata_pert_type]
     location: obs
@@ -41,5 +46,26 @@ fields:
     location: obs
     required_for: []
     description: Experimental batch identifier.
+  source:
+    aliases: [source_id, source, Metadata_Source]
+    location: obs
+    required_for: []
+    description: Data-generating site/laboratory identifier.
 
 compartments: [Cells, Cytoplasm, Nuclei, Image]
+measurement_families:
+  [
+    AreaShape,
+    Intensity,
+    Texture,
+    RadialDistribution,
+    Granularity,
+    Neighbors,
+    Location,
+    Correlation,
+    Count,
+    Threshold,
+    Children,
+    Parent,
+    Number,
+  ]

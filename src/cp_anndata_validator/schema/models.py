@@ -53,6 +53,7 @@ class SchemaDefinition(BaseModel):
     description: str = ""
     fields: dict[str, FieldSpec] = Field(default_factory=dict)
     compartments: list[str] = Field(default_factory=list)
+    measurement_families: list[str] = Field(default_factory=list)
 
     @field_validator("schema_version")
     @classmethod
