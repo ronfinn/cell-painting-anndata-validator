@@ -1,11 +1,23 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+message: "If you use this software, please cite it using the metadata below."
 title: "Cell Painting AnnData Validator"
 type: software
 authors:
   - family-names: "Finn"
     given-names: "Ron"
-version: 0.1.0
-date-released: 2026-07-18
+version: "0.1.0"
 repository-code: "https://github.com/ronfinn/cell-painting-anndata-validator"
-license: Apache-2.0
+url: "https://github.com/ronfinn/cell-painting-anndata-validator"
+license: "Apache-2.0"
+abstract: >-
+  A Python package and command-line interface for validating the semantic
+  correctness, metadata completeness, provenance, and basic AI-readiness of
+  Cell Painting datasets represented as AnnData files.
+keywords:
+  - Cell Painting
+  - cytomining
+  - AnnData
+  - morphological profiling
+  - image-based profiling
+  - data validation
+  - provenance
