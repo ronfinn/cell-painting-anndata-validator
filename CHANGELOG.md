@@ -6,8 +6,9 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Initial v0.1 line. Nothing has been tagged or published to PyPI yet — see
-[`docs/limitations.md`](docs/limitations.md).
+## [0.1.0a1] - 2026-07-19
+
+Initial public alpha release.
 
 ### Added
 
