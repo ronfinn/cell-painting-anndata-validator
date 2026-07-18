@@ -1,0 +1,57 @@
+schema_id: jump-cp
+schema_version: "1.0.0"
+description: >
+  Compatibility preset based on public JUMP Cell Painting Consortium
+  metadata conventions documented at
+  https://github.com/jump-cellpainting/datasets/blob/main/metadata/README.md.
+  This is a compatibility preset derived from public JUMP conventions, not
+  an official JUMP-endorsed AnnData standard.
+
+fields:
+  plate:
+    aliases: [Metadata_Plate, plate_id]
+    location: obs
+    required_for: [single-cell, well]
+    description: Plate identifier (JUMP convention Metadata_Plate).
+  well:
+    aliases: [Metadata_Well, well_id]
+    location: obs
+    required_for: [single-cell, well]
+    description: Well identifier (JUMP convention Metadata_Well).
+  site:
+    aliases: [Metadata_Site, site_id]
+    location: obs
+    required_for: [single-cell]
+    description: Imaging site / field of view identifier.
+  cell_id:
+    aliases: [Metadata_ObjectNumber, cell_id]
+    location: obs
+    required_for: [single-cell]
+    description: Cell or segmented-object identifier within a site.
+  perturbation_id:
+    aliases: [Metadata_JCP2022, perturbation_id]
+    location: obs
+    required_for: [treatment]
+    description: JUMP perturbation identifier (JCP2022 code).
+  control_type:
+    aliases: [Metadata_pert_type, control_type]
+    location: obs
+    required_for: []
+    description: Control/treatment annotation (JUMP convention poscon/negcon/trt).
+  perturbation_modality:
+    aliases: [Metadata_perturbation_modality]
+    location: obs
+    required_for: []
+    description: Perturbation modality (compound/orf/crispr/unknown).
+  batch:
+    aliases: [Metadata_Batch, batch_id]
+    location: obs
+    required_for: []
+    description: Experimental batch identifier.
+  source:
+    aliases: [Metadata_Source, source_id]
+    location: obs
+    required_for: []
+    description: Data-generating site identifier.
+
+compartments: [Cells, Cytoplasm, Nuclei, Image]

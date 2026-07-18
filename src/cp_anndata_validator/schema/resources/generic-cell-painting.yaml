@@ -1,0 +1,45 @@
+schema_id: generic-cell-painting
+schema_version: "1.0.0"
+description: >
+  Vendor-neutral schema for Cell Painting profiles. Does not assume any
+  single upstream pipeline's exact column spelling: canonical fields are
+  matched via a list of common aliases instead of one required name.
+
+fields:
+  plate:
+    aliases: [plate_id, plate, Plate, Metadata_Plate]
+    location: obs
+    required_for: [single-cell, well]
+    description: Plate identifier.
+  well:
+    aliases: [well_id, well, Well, Metadata_Well]
+    location: obs
+    required_for: [single-cell, well]
+    description: Well identifier within a plate.
+  site:
+    aliases: [site_id, site, field_of_view, Metadata_Site]
+    location: obs
+    required_for: [single-cell]
+    description: Imaging site / field of view identifier within a well.
+  cell_id:
+    aliases: [cell_id, object_id, Metadata_ObjectNumber]
+    location: obs
+    required_for: [single-cell]
+    description: Cell or segmented-object identifier within a site.
+  perturbation_id:
+    aliases: [perturbation_id, pert_id, treatment_id]
+    location: obs
+    required_for: [treatment]
+    description: Identifier of the perturbation applied to a well or treatment group.
+  control_type:
+    aliases: [control_type, control_annotation, Metadata_pert_type]
+    location: obs
+    required_for: []
+    description: Control/treatment annotation (for example negcon, poscon, trt).
+  batch:
+    aliases: [batch_id, batch, Metadata_Batch]
+    location: obs
+    required_for: []
+    description: Experimental batch identifier.
+
+compartments: [Cells, Cytoplasm, Nuclei, Image]
