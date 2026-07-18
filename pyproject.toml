@@ -1,6 +1,6 @@
 [project]
 name = "cp-anndata-validator"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Validate the semantic correctness, metadata completeness, provenance and AI readiness of Cell Painting AnnData datasets."
 readme = "README.md"
 authors = [
