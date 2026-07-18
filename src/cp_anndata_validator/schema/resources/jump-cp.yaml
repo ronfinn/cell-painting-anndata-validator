@@ -39,7 +39,7 @@ fields:
     required_for: []
     description: Control/treatment annotation (JUMP convention poscon/negcon/trt).
   perturbation_modality:
-    aliases: [Metadata_perturbation_modality]
+    aliases: [Metadata_perturbation_modality, perturbation_modality]
     location: obs
     required_for: []
     description: Perturbation modality (compound/orf/crispr/unknown).

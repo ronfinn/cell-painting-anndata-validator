@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --python ${{ matrix.python-version }} --all-groups
+
+      - name: Lint (ruff check)
+        run: uv run ruff check .
+
+      - name: Format check (ruff format)
+        run: uv run ruff format --check .
+
+      - name: Type-check (mypy)
+        run: uv run mypy src
+
+      - name: Test with coverage
+        run: uv run pytest --cov=cp_anndata_validator --cov-report=term-missing
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Smoke-test the built CLI
+        run: |
+          uv run python examples/generate_examples.py
+          uv run cp-validate examples/valid_single_cell.h5ad
+          uv run cp-validate examples/valid_well_level.h5ad
+          if uv run cp-validate examples/invalid_example.h5ad --profile-level single-cell; then
+            echo "expected the invalid example to fail validation (exit 1)" >&2
+            exit 1
+          fi

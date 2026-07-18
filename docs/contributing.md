@@ -1,5 +1,10 @@
 # Contributing
 
+See [`CONTRIBUTING.md`](../CONTRIBUTING.md) at the repository root for
+ground rules, PR expectations, and how to report bugs. This page covers the
+detailed dev workflow, repository layout, and step-by-step instructions for
+adding a check or schema.
+
 ## Dev workflow
 
 This project uses [`uv`](https://docs.astral.sh/uv/) for everything —

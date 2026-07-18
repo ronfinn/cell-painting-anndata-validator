@@ -8,3 +8,15 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Generated example datasets/reports (regenerate with examples/generate_examples.py;
+# never commit these, even though they're small -- see examples/README.md)
+examples/*.h5ad
+examples/*.json
+examples/*.html
+
+# Test/coverage artifacts
+.coverage
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
