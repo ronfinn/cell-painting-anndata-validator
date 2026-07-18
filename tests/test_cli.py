@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+import importlib
 import json
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from cp_anndata_validator.cli.app import app, apply_argv_shim
-from tests.fixtures.synthetic import make_single_cell_adata, write_h5ad
+from tests.fixtures.synthetic import make_single_cell_adata, make_well_level_adata, write_h5ad
+
+# `cp_anndata_validator.cli` re-exports the `app` *attribute* from this submodule under
+# the same name the submodule itself has, which clobbers the parent package's automatic
+# `cli.app -> module` binding. `importlib.import_module` reads straight from `sys.modules`
+# and sidesteps that attribute-traversal footgun, unlike `import cp_anndata_validator.cli.app`.
+cli_app = importlib.import_module("cp_anndata_validator.cli.app")
 
 runner = CliRunner()
 
@@ -75,6 +83,31 @@ def test_validate_command_exits_two_for_an_unknown_schema(tmp_path: Path) -> Non
     path = write_h5ad(make_single_cell_adata(), tmp_path)
     result = runner.invoke(app, ["validate", str(path), "--schema", "not-a-real-schema"])
     assert result.exit_code == 2
+
+
+def test_validate_command_exits_two_for_an_unexpected_execution_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A bug/crash outside the orchestrator's own exception isolation is a usage-level
+    failure (exit 2), not a validation failure (exit 1) -- the run never reached a verdict."""
+
+    def _boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("simulated unexpected failure")
+
+    monkeypatch.setattr(cli_app, "run_validate", _boom)
+    path = write_h5ad(make_single_cell_adata(), tmp_path)
+
+    result = runner.invoke(app, ["validate", str(path)])
+
+    assert result.exit_code == 2
+    assert "Unexpected internal error" in result.output
+
+
+def test_validate_command_supports_the_schema_option(tmp_path: Path) -> None:
+    path = write_h5ad(make_well_level_adata(), tmp_path)
+    result = runner.invoke(app, ["validate", str(path), "--schema", "jump-cp"])
+    assert result.exit_code == 0
+    assert "jump-cp" in result.output
 
 
 def test_validate_command_strict_turns_warnings_into_failures(tmp_path: Path) -> None:

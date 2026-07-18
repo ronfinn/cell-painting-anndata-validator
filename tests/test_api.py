@@ -69,6 +69,23 @@ def test_validate_respects_declared_profile_level_override(tmp_path: Path) -> No
     assert report.profile_level.effective == ProfileLevel.WELL
 
 
+def test_validate_is_deterministic_across_repeated_runs(tmp_path: Path) -> None:
+    """Re-validating the same, unchanged dataset must produce identical issues/checks/counts."""
+    path = write_h5ad(make_single_cell_adata(), tmp_path)
+
+    first = validate(path)
+    second = validate(path)
+
+    assert [issue.model_dump() for issue in first.issues] == [
+        issue.model_dump() for issue in second.issues
+    ]
+    assert [check.model_dump() for check in first.checks] == [
+        check.model_dump() for check in second.checks
+    ]
+    assert first.counts == second.counts
+    assert first.status == second.status
+
+
 def test_validate_forced_backed_mode_produces_same_result_as_in_memory(tmp_path: Path) -> None:
     path = write_h5ad(make_single_cell_adata(), tmp_path)
 

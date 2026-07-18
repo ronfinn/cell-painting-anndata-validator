@@ -41,7 +41,9 @@ app.add_typer(schema_app, name="schema")
 _EXIT_OK = 0
 _EXIT_VALIDATION_FAILED = 1
 _EXIT_USAGE_ERROR = 2
-_EXIT_INTERNAL_ERROR = 3
+"""File, schema, and execution failures all share exit code 2: the validator
+could not produce a pass/fail verdict at all, as distinct from exit code 1
+(it ran and found validation errors)."""
 
 _KNOWN_SUBCOMMANDS = {"validate", "schema"}
 _PASSTHROUGH_TOKENS = {"--help", "-h", "--version"}
@@ -143,7 +145,7 @@ def validate_command(
         raise typer.Exit(code=_EXIT_USAGE_ERROR) from exc
     except Exception as exc:  # noqa: BLE001 - safety net; checks are isolated by the orchestrator
         typer.echo(f"Unexpected internal error: {exc}", err=True)
-        raise typer.Exit(code=_EXIT_INTERNAL_ERROR) from exc
+        raise typer.Exit(code=_EXIT_USAGE_ERROR) from exc
 
     if not quiet:
         typer.echo(render_console(result))

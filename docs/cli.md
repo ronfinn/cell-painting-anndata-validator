@@ -36,8 +36,7 @@ requirements, and declared compartments.
 |---|---|
 | `0` | Validation ran and found no failing issues (`report.status == "pass"`). |
 | `1` | Validation ran and the report failed (an error-severity issue, or — under `--strict` — a warning-severity issue). |
-| `2` | A usage/input error: bad CLI arguments, an unreadable/missing/corrupt dataset file (`LoadError`), or an invalid/missing schema (`SchemaError`). No checks ran. |
-| `3` | An unexpected internal error. This should not normally happen — every registered check's exceptions are already isolated into an `ENGINE001` issue by the orchestrator — but this is a defensive safety net at the CLI boundary. |
+| `2` | The validator could not produce a pass/fail verdict at all: a file failure (unreadable/missing/corrupt dataset, bad `--report` path/extension, an existing `--report` file without `--force`), a schema failure (invalid/missing schema), a bad CLI argument, or an unexpected execution failure. This should be rare for execution failures specifically — every registered check's exceptions are already isolated into an `ENGINE001` issue by the orchestrator — but it is a defensive safety net at the CLI boundary. No report is produced. |
 
 ## Examples
 
