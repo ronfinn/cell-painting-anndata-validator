@@ -27,15 +27,6 @@ AI readiness of Cell Painting datasets stored as
     width="100%"
   >
 </p>
->>>>>>> 62c9ce6 (Add project preview image to README)
-
-<p align="center">
-  <img
-    src="docs/assets/cp-anndata-validator-social-preview.png"
-    alt="Cell Painting AnnData Validator — semantic validation for Cell Painting AnnData files"
-    width="100%"
-  >
-</p>
 
 > [!IMPORTANT]
 > **Beta (`0.2.0b1`).** The built-in `generic-cell-painting` and `jump-cp`
