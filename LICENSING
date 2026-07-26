@@ -1,0 +1,24 @@
+# Licensing policy
+
+## Existing releases
+
+Releases in the `0.2.x` series are licensed under the Apache License 2.0,
+as recorded in the `LICENSE` file and the corresponding release tags.
+
+Rights granted under those releases remain governed by Apache-2.0 and are
+not revoked or restricted by later changes to this project's licensing.
+
+## Future releases
+
+The licence for releases after the `0.2.x` series may change.
+
+Any licensing change will:
+
+- be announced in the relevant release notes;
+- be stated in the release's `LICENSE` file;
+- be reflected in the package metadata; and
+- apply only where the project has the necessary rights to license the
+  relevant code under those terms.
+
+Until a new licence is expressly adopted in a release, the current
+Apache-2.0 licence continues to apply.
