@@ -26,6 +26,7 @@ from cp_anndata_validator.schema.loader import (
     list_builtin_schema_names,
     load_builtin_schema,
 )
+from cp_anndata_validator.version import __version__
 
 app = typer.Typer(
     name="cp-validate",
@@ -62,6 +63,28 @@ def apply_argv_shim(argv: list[str]) -> list[str]:
     if first in _KNOWN_SUBCOMMANDS or first in _PASSTHROUGH_TOKENS or first.startswith("-"):
         return argv
     return ["validate", *argv]
+
+
+def _version_callback(value: bool) -> None:
+    """Print the installed package version and exit 0, before any subcommand runs."""
+    if value:
+        typer.echo(__version__)
+        raise typer.Exit(code=_EXIT_OK)
+
+
+@app.callback()
+def root_callback(
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            callback=_version_callback,
+            is_eager=True,
+            help="Show the installed cp-anndata-validator version and exit.",
+        ),
+    ] = False,
+) -> None:
+    """Root callback, carrying only options that apply before subcommand dispatch."""
 
 
 def _write_report_file(report: Report, path: Path, *, force: bool) -> None:

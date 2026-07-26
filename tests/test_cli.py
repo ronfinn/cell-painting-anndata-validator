@@ -10,6 +10,7 @@ import pytest
 from typer.testing import CliRunner
 
 from cp_anndata_validator.cli.app import app, apply_argv_shim
+from cp_anndata_validator.version import __version__
 from tests.fixtures.synthetic import make_single_cell_adata, make_well_level_adata, write_h5ad
 
 # `cp_anndata_validator.cli` re-exports the `app` *attribute* from this submodule under
@@ -212,3 +213,26 @@ def test_top_level_help_lists_both_subcommands() -> None:
     assert result.exit_code == 0
     assert "validate" in result.stdout
     assert "schema" in result.stdout
+
+
+def test_version_option_prints_installed_version_and_exits_zero() -> None:
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert result.stdout.strip() == __version__
+
+
+def test_version_option_needs_no_subcommand_or_dataset_path() -> None:
+    """--version is eager, so it must short-circuit before the otherwise-required
+    subcommand (and its dataset argument) is resolved."""
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert "Missing command" not in result.output
+    assert "Usage:" not in result.output
+
+
+def test_version_option_is_listed_in_top_level_help() -> None:
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    assert "--version" in result.stdout

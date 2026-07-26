@@ -30,6 +30,7 @@ names the canonical field instead (for example `obs.plate`).
 
 | Code | Severity | Meaning | Remediation |
 |---|---|---|---|
+| `IDENT000` | error | Fallback code: no column resolved for a required canonical identifier field that has no dedicated rule code of its own. Only reachable via a custom schema that declares a required field beyond the five below (`plate`, `well`, `site`, `cell_id`, `perturbation_id`); the built-in schemas never emit it. The issue's `location` (`obs.<field>`) names the field. | Add an `.obs` column for the field named in `location` using one of the schema's declared aliases, or drop it from that profile level's `required_for` list in your custom schema. |
 | `IDENT001` | error | No column resolved for the canonical `plate` field, required for the effective profile level. | Add an `.obs` column for `plate` using one of the schema's declared aliases, or choose a schema/profile level that matches this dataset. |
 | `IDENT002` | error | No column resolved for the canonical `well` field. | Same as `IDENT001`, for `well`. |
 | `IDENT003` | error | No column resolved for the canonical `site` field (single-cell). | Same as `IDENT001`, for `site`. |

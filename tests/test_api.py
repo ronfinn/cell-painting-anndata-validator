@@ -69,6 +69,49 @@ def test_validate_respects_declared_profile_level_override(tmp_path: Path) -> No
     assert report.profile_level.effective == ProfileLevel.WELL
 
 
+def test_validate_accepts_a_profile_level_enum(tmp_path: Path) -> None:
+    path = write_h5ad(make_well_level_adata(), tmp_path)
+
+    report = validate(path, profile_level=ProfileLevel.WELL)
+
+    assert report.profile_level.declared == ProfileLevel.WELL
+    assert isinstance(report.profile_level.declared, ProfileLevel)
+
+
+def test_validate_coerces_a_profile_level_string_to_the_enum(tmp_path: Path) -> None:
+    """`ProfileLevel` is a StrEnum, so a raw string would compare equal to a member
+    and reach checks uncoerced; it must be converted to the enum instead."""
+    path = write_h5ad(make_well_level_adata(), tmp_path)
+
+    report = validate(path, profile_level="well")
+
+    assert isinstance(report.profile_level.declared, ProfileLevel)
+    assert report.profile_level.declared == ProfileLevel.WELL
+    assert report.profile_level.effective == ProfileLevel.WELL
+
+
+def test_validate_string_profile_level_does_not_produce_an_engine_error(tmp_path: Path) -> None:
+    """Regression test: an uncoerced string reached `level.value` inside the
+    aggregation check, replacing its result with an ENGINE001 error issue."""
+    path = write_h5ad(make_well_level_adata(), tmp_path)
+
+    from_string = validate(path, profile_level="well")
+    from_enum = validate(path, profile_level=ProfileLevel.WELL)
+
+    assert [issue.code for issue in from_string.issues if issue.code == "ENGINE001"] == []
+    assert [issue.code for issue in from_string.issues] == [
+        issue.code for issue in from_enum.issues
+    ]
+    assert from_string.status == from_enum.status
+
+
+def test_validate_rejects_an_unsupported_profile_level_string(tmp_path: Path) -> None:
+    path = write_h5ad(make_well_level_adata(), tmp_path)
+
+    with pytest.raises(ValueError, match="Unsupported profile_level 'not-a-level'"):
+        validate(path, profile_level="not-a-level")
+
+
 def test_validate_is_deterministic_across_repeated_runs(tmp_path: Path) -> None:
     """Re-validating the same, unchanged dataset must produce identical issues/checks/counts."""
     path = write_h5ad(make_single_cell_adata(), tmp_path)

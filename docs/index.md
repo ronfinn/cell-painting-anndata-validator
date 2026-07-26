@@ -42,6 +42,9 @@ print(report.status)   # "pass" or "fail"
 - [`anndata-mapping.md`](anndata-mapping.md) — how this package interprets
   `.X`/`.obs`/`.var`/`.uns`/`.obsm`/`.varm`/`.layers`.
 - [`checks.md`](checks.md) — the full, stable rule-code catalogue.
+- [`false-positives.md`](false-positives.md) — what real pipeline output is
+  expected to report, and which findings are governance signalling versus
+  likely false positives.
 - [`jump-cp-derivation.md`](jump-cp-derivation.md) — provenance of the
   `jump-cp` compatibility preset.
 - [`limitations.md`](limitations.md) — known v0.1 gaps and caveats.

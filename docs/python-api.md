@@ -23,7 +23,7 @@ def validate(
     path: str | Path,
     *,
     schema: str | Path = "generic-cell-painting",
-    profile_level: ProfileLevel | None = None,
+    profile_level: ProfileLevel | str | None = None,
     backed: bool | None = None,
     sample_rows: int = 5000,
     strict: bool = False,
@@ -45,9 +45,14 @@ for issue in report.issues:
     print(issue.code, issue.severity, issue.location, issue.message)
 ```
 
-Raises `cp_anndata_validator.LoadError` if the file can't be safely opened,
-and `cp_anndata_validator.SchemaError` if the requested schema can't be
-loaded — both before any checks run.
+`profile_level` accepts either a `ProfileLevel` member or its string value
+(`"single-cell"`, `"well"`, `"treatment"`); a string is coerced to the enum
+before any check runs.
+
+Raises `ValueError` if `profile_level` is not one of those values,
+`cp_anndata_validator.LoadError` if the file can't be safely opened, and
+`cp_anndata_validator.SchemaError` if the requested schema can't be
+loaded — all before any checks run.
 
 ## Rendering a report
 

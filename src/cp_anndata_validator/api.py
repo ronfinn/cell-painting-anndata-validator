@@ -25,11 +25,34 @@ from cp_anndata_validator.schema.resolve import resolve_schema
 __all__ = ["LoadError", "SchemaError", "validate"]
 
 
+def _coerce_profile_level(profile_level: ProfileLevel | str | None) -> ProfileLevel | None:
+    """Coerce a caller-supplied profile level to a :class:`ProfileLevel` member.
+
+    ``ProfileLevel`` is a ``StrEnum``, so a plain string like ``"well"``
+    compares equal to a member and would otherwise flow untouched into
+    :class:`~cp_anndata_validator.checks.registry.CheckContext` -- checks that
+    use enum-only attributes (``level.value``) would then fail at runtime.
+    Coercing here guarantees no check ever receives a raw string, and rejects
+    an unsupported value immediately instead of reporting it as a check
+    failure.
+    """
+    if profile_level is None:
+        return None
+    try:
+        return ProfileLevel(profile_level)
+    except ValueError as exc:
+        supported = ", ".join(repr(level.value) for level in ProfileLevel)
+        raise ValueError(
+            f"Unsupported profile_level {profile_level!r}; expected one of {supported}, "
+            "or a ProfileLevel member"
+        ) from exc
+
+
 def validate(
     path: str | Path,
     *,
     schema: str | Path = "generic-cell-painting",
-    profile_level: ProfileLevel | None = None,
+    profile_level: ProfileLevel | str | None = None,
     backed: bool | None = None,
     sample_rows: int = DEFAULT_SAMPLE_ROWS,
     strict: bool = False,
@@ -42,6 +65,8 @@ def validate(
             to a custom schema YAML file.
         profile_level: Declare the profile level explicitly, overriding
             auto-detection (the report still records what was detected).
+            Accepts a :class:`ProfileLevel` member or its string value (for
+            example ``"well"``).
         backed: Force backed (``True``) or in-memory (``False``) loading;
             ``None`` (default) auto-selects based on file size.
         sample_rows: Maximum number of rows sampled for numeric validity and
@@ -49,9 +74,12 @@ def validate(
         strict: Treat warnings as failures when computing the report status.
 
     Raises:
+        ValueError: If ``profile_level`` is not a supported profile level.
         LoadError: If the dataset cannot be safely opened.
         SchemaError: If the requested schema cannot be loaded.
     """
+    declared_level = _coerce_profile_level(profile_level)
+
     handle = load_anndata(path, backed=backed)
     try:
         obs = cast(pd.DataFrame, handle.adata.obs)
@@ -60,8 +88,8 @@ def validate(
         resolved = resolve_schema(obs, var, schema_definition)
         detection = detect_profile_level(obs, resolved)
         profile = (
-            detection.model_copy(update={"declared": profile_level})
-            if profile_level is not None
+            detection.model_copy(update={"declared": declared_level})
+            if declared_level is not None
             else detection
         )
 

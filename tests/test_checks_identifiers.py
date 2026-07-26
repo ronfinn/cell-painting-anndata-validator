@@ -16,7 +16,7 @@ from cp_anndata_validator.checks.identifiers import (
 from cp_anndata_validator.checks.registry import CheckContext
 from cp_anndata_validator.loading import AnnDataHandle
 from cp_anndata_validator.profiles import ProfileLevel, detect_profile_level
-from cp_anndata_validator.schema.loader import load_builtin_schema
+from cp_anndata_validator.schema.loader import load_builtin_schema, load_schema
 from cp_anndata_validator.schema.resolve import resolve_schema
 from tests.fixtures.synthetic import (
     make_single_cell_adata,
@@ -84,6 +84,46 @@ def test_identifier_completeness_flags_missing_perturbation_for_treatment() -> N
     issues = check_identifier_completeness(ctx)
 
     assert [issue.code for issue in issues] == ["IDENT005"]
+
+
+def test_identifier_completeness_falls_back_to_ident000_for_a_custom_required_field(
+    tmp_path: Path,
+) -> None:
+    """A custom schema may require an identifier field that has no dedicated rule
+    code of its own; those missing fields fall back to `IDENT000` rather than being
+    dropped silently."""
+    custom = tmp_path / "custom.yaml"
+    custom.write_text(
+        """
+        schema_id: custom-extra-identifier
+        schema_version: "0.1.0"
+        fields:
+          plate:
+            aliases: [plate_id]
+            location: obs
+            required_for: [single-cell]
+          acquisition_id:
+            aliases: [acquisition_id, Metadata_AcquisitionID]
+            location: obs
+            required_for: [single-cell]
+        """
+    )
+    adata = make_single_cell_adata()
+    assert "acquisition_id" not in adata.obs.columns
+    handle = AnnDataHandle(adata=adata, path=Path("fake.h5ad"), size_bytes=0, backed=False)
+    resolved = resolve_schema(adata.obs, adata.var, load_schema(custom))
+    profile = detect_profile_level(adata.obs, resolved).model_copy(
+        update={"declared": ProfileLevel.SINGLE_CELL}
+    )
+    ctx = CheckContext(handle=handle, resolved_schema=resolved, profile=profile)
+
+    issues = check_identifier_completeness(ctx)
+
+    assert [issue.code for issue in issues] == ["IDENT000"]
+    assert issues[0].location == "obs.acquisition_id"
+    assert issues[0].severity.value == "error"
+    assert issues[0].check_name == "identifier_completeness"
+    assert "Metadata_AcquisitionID" in issues[0].evidence
 
 
 def test_observation_completeness_passes_for_valid_fixture() -> None:
