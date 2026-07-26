@@ -1,0 +1,54 @@
+name: Schema / alias request
+description: Propose a new alias or field mapping for a built-in schema.
+title: "[schema] "
+labels: ["schema"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Alias changes need **public evidence**. Do not paste private column values.
+        Matching is exact (case-insensitive) with declaration-order precedence.
+  - type: input
+    id: real_column
+    attributes:
+      label: Real column name
+      description: Exact spelling as it appears in public data or docs.
+    validations:
+      required: true
+  - type: input
+    id: canonical
+    attributes:
+      label: Intended canonical field
+      description: e.g. batch, plate, well, perturbation_id, control_type
+    validations:
+      required: true
+  - type: dropdown
+    id: schema_affected
+    attributes:
+      label: Schema affected
+      options:
+        - generic-cell-painting
+        - jump-cp
+        - both
+        - unsure
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Public documentation or public dataset evidence
+      description: Links to Cell Painting Gallery paths, JUMP docs, papers, or other public sources.
+    validations:
+      required: true
+  - type: textarea
+    id: precedence
+    attributes:
+      label: Precedence implications
+      description: Where should this alias sit in the ordered list, and why?
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Anonymized examples
+      description: Example column header and (if needed) redacted value patterns — no private IDs.

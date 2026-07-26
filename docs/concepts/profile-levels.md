@@ -10,7 +10,7 @@ granularities:
 | `treatment` | perturbation | perturbation identifier, aggregation provenance |
 
 Required fields for each level are declared per-schema in `required_for`
-(see [schemas.md](schemas.md)); the table above reflects the built-in
+(see [Built-in schemas](../schemas/built-in.md)); the table above reflects the built-in
 `generic-cell-painting`/`jump-cp` schemas.
 
 ## Declaring vs. detecting

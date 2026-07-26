@@ -37,11 +37,23 @@ dependencies = [
 [project.scripts]
 cp-validate = "cp_anndata_validator.cli.app:main"
 
+[project.urls]
+Homepage = "https://github.com/ronfinn/cell-painting-anndata-validator"
+Documentation = "https://ronfinn.github.io/cell-painting-anndata-validator/"
+Repository = "https://github.com/ronfinn/cell-painting-anndata-validator"
+Issues = "https://github.com/ronfinn/cell-painting-anndata-validator/issues"
+Changelog = "https://github.com/ronfinn/cell-painting-anndata-validator/blob/main/CHANGELOG.md"
+
 [build-system]
 requires = ["uv_build>=0.11.29,<0.12.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
+docs = [
+    "mkdocs>=1.6,<2",
+    "mkdocs-material>=9,<10",
+    "mkdocstrings[python]>=0.26",
+]
 dev = [
     "mypy>=2.3.0",
     "pandas-stubs>=3.0.3.260530",

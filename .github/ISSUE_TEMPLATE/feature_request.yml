@@ -1,0 +1,36 @@
+name: Feature request
+description: Propose a user-facing enhancement within project scope.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This package **validates** AnnData; it does not convert CellProfiler/DeepProfiler
+        outputs into AnnData. Biological suitability scoring is out of scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Scope check
+      options:
+        - label: This does not require converting source formats into AnnData
+          required: true
+        - label: This does not request silent fabrication of licence/provenance metadata
+          required: true

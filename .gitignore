@@ -7,7 +7,26 @@ wheels/
 *.egg-info
 
 # Virtual environments
-.venv
+.venv/
+.venv*/
+venv/
+ENV/
+
+# macOS
+.DS_Store
+
+# MkDocs
+site/
+
+# Caches
+.cache/
+.coverage
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.uv/
+*.cover
+htmlcov/
 
 # Generated example datasets/reports (regenerate with examples/generate_examples.py;
 # never commit these, even though they're small -- see examples/README.md)
@@ -15,8 +34,21 @@ examples/*.h5ad
 examples/*.json
 examples/*.html
 
-# Test/coverage artifacts
-.coverage
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
+# Generated AnnData / reports outside examples/
+*.h5ad
+!tests/**/*.h5ad
+report.json
+report.html
+*.report.json
+*.report.html
+
+# Local public-data pilot downloads (keep outside the repo when possible)
+public-data/
+downloads/
+cp-validator-pilot/
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*~

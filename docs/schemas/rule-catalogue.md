@@ -47,7 +47,7 @@ names the canonical field instead (for example `obs.plate`).
 | Code | Severity | Meaning | Remediation |
 |---|---|---|---|
 | `PROFILE001` | error | The effective (declared or detected) profile level's required fields are not all resolved. | Add the missing identifier column(s), or select a different `--profile-level`. |
-| `PROFILE002` | information | Auto-detection could not settle on a single profile level (see [profile-levels.md](profile-levels.md)). | Pass `--profile-level` explicitly to disambiguate. |
+| `PROFILE002` | information | Auto-detection could not settle on a single profile level (see [Profile levels](../concepts/profile-levels.md)). | Pass `--profile-level` explicitly to disambiguate. |
 | `PROFILE003` | warning | A declared `--profile-level` disagrees with what auto-detection found. | Confirm the declared level is correct, or drop `--profile-level` to use auto-detection. |
 
 ## Matrix and slot semantics (`checks/matrix.py`)
@@ -137,7 +137,7 @@ names the canonical field instead (for example `obs.plate`).
   table. `Report`/console/JSON/HTML renderers never re-expand these lists.
 - **Profile-level-dependent requirements.** `IDENT001`–`IDENT005` only fire
   for fields required by the *effective* profile level (declared, or
-  detected when not declared) — see [profile-levels.md](profile-levels.md).
+  detected when not declared) — see [Profile levels](../concepts/profile-levels.md).
   In particular: a well-level profile never requires `cell_id` (`IDENT004`),
   and a treatment-level profile never requires `plate`/`well` directly
   (`IDENT001`/`IDENT002`) as long as `IDENT006` doesn't fire instead.

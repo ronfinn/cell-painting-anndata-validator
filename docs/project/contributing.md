@@ -1,9 +1,8 @@
 # Contributing
 
-See [`CONTRIBUTING.md`](../CONTRIBUTING.md) at the repository root for
-ground rules, PR expectations, and how to report bugs. This page covers the
-detailed dev workflow, repository layout, and step-by-step instructions for
-adding a check or schema.
+See the repository-root `CONTRIBUTING.md` for ground rules, PR expectations,
+and how to report bugs. This page covers the detailed dev workflow, repository
+layout, and step-by-step instructions for adding a check or schema.
 
 ## Dev workflow
 
@@ -25,8 +24,8 @@ exactly what CI (and the milestone acceptance criteria used to build this
 package) run.
 
 For a full **release** checklist (including the isolated wheel smoke test and
-package/schema version independence checks), see the root
-[`CONTRIBUTING.md`](../CONTRIBUTING.md#release-checklist-pre-publish).
+package/schema version independence checks), see the repository-root
+`CONTRIBUTING.md` (“Release checklist”).
 
 ## Repository layout
 
@@ -59,12 +58,12 @@ docs/                                        # this documentation set
 4. Add a new rule code, or reuse an existing one if the check refines an
    existing meaning. **New codes are never reused for a different meaning
    later** — pick a fresh number in the right category's block. Document it
-   in [checks.md](checks.md).
+   in [Rule catalogue](../schemas/rule-catalogue.md).
 5. Add a test module `tests/test_checks_<category>.py` exercising both the
    passing and failing paths, using or extending
    `tests/fixtures/synthetic.py`.
 6. If the check needs new `.uns`/`.obs`/`.var` conventions, document them in
-   [anndata-mapping.md](anndata-mapping.md).
+   [AnnData mapping](../concepts/anndata-mapping.md).
 
 Because `checks/__init__.py` imports every check submodule (registering
 them as an import side effect), a new check module must be added to that
@@ -74,7 +73,7 @@ extension, `validate()` and the CLI.
 ## Adding a schema
 
 1. Add a new YAML file under `schema/resources/`, following the shape
-   described in [schemas.md](schemas.md).
+   described in [Custom schema format](../schemas/custom.md).
 2. Register its filename in `schema/loader.py`'s builtin-schema lookup so
    `cp-validate schema list`/`show` and `load_schema("your-name")` find it.
 3. Add a test in `tests/test_schema_loader.py` (or a new module) confirming
@@ -82,7 +81,7 @@ extension, `validate()` and the CLI.
 4. If the schema is derived from a specific external convention (like
    `jump-cp`), document that provenance in a new `docs/<name>-derivation.md`
    file, citing primary sources — see
-   [jump-cp-derivation.md](jump-cp-derivation.md) as a template.
+   [JUMP compatibility derivation](../pilots/jump-cp-derivation.md) as a template.
 
 ## The argv shim
 
@@ -94,8 +93,8 @@ subcommand internally, and the `main()` console-script entry point
 rewrites `sys.argv` to insert `"validate"` before Click parses it, whenever
 the first token isn't already a known subcommand, a help/version flag, or
 an option. See `apply_argv_shim()` in
-[`src/cp_anndata_validator/cli/app.py`](../src/cp_anndata_validator/cli/app.py)
-and its dedicated tests in `tests/test_cli.py`.
+`src/cp_anndata_validator/cli/app.py` and its dedicated tests in
+`tests/test_cli.py`.
 
 ## Testing conventions
 

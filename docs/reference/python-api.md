@@ -83,7 +83,7 @@ restored = Report.model_validate_json(payload)
 assert restored == report
 ```
 
-See [checks.md](checks.md) for the full field list on `Issue`, and
+See [Rule catalogue](../schemas/rule-catalogue.md) for the full field list on `Issue`, and
 `src/cp_anndata_validator/models/report.py` for `Report`'s complete shape
 (`profile_level`, `counts`, `checks`, `input_file`, etc.).
 
@@ -111,5 +111,23 @@ ctx = CheckContext(handle=handle, resolved_schema=resolved, profile=profile)
 issues, checks = run_checks(ctx)
 ```
 
-See [contributing.md](contributing.md#adding-a-check) for how to register a
+See [Contributing](../project/contributing.md#adding-a-check) for how to register a
 new check.
+
+## API reference
+
+::: cp_anndata_validator.validate
+
+::: cp_anndata_validator.Report
+
+::: cp_anndata_validator.Issue
+
+::: cp_anndata_validator.Severity
+
+::: cp_anndata_validator.Category
+
+::: cp_anndata_validator.ProfileLevel
+
+::: cp_anndata_validator.LoadError
+
+::: cp_anndata_validator.SchemaError

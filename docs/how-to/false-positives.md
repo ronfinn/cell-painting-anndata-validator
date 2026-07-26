@@ -211,7 +211,7 @@ informational precisely for that reason.
 
 **What to do:** drop zero-variance columns before training; impute, mask or
 document NaNs. Remember these checks run on a bounded row sample, so they are
-statistical rather than exhaustive (see [`limitations.md`](limitations.md)).
+statistical rather than exhaustive (see [Known limitations](../project/limitations.md)).
 
 ## Categories that valid output should not trigger
 

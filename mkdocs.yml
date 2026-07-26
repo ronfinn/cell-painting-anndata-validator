@@ -1,0 +1,175 @@
+site_name: Cell Painting AnnData Validator
+site_description: >-
+  Validate the semantic correctness, metadata completeness, provenance and
+  AI readiness of Cell Painting datasets stored as AnnData.
+site_url: https://ronfinn.github.io/cell-painting-anndata-validator/
+repo_url: https://github.com/ronfinn/cell-painting-anndata-validator
+repo_name: ronfinn/cell-painting-anndata-validator
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2026 Ron Finn — Apache License 2.0
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_signature_annotations: true
+            separate_signature: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            filters: ["!^_"]
+            merge_init_into_class: true
+            heading_level: 3
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: Anchor link to this section
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+nav:
+  - Home: index.md
+
+  - Getting started:
+      - getting-started/index.md
+      - Installation: getting-started/installation.md
+      - Five-minute quickstart: getting-started/quickstart.md
+      - First validation: getting-started/first-validation.md
+      - Choosing CLI or Python: getting-started/cli-or-python.md
+
+  - Tutorials:
+      - tutorials/index.md
+      - Validate a single-cell dataset: tutorials/validate-single-cell.md
+      - Validate a well-level profile: tutorials/validate-well-level.md
+      - Generate JSON and HTML reports: tutorials/generate-reports.md
+      - Use a custom schema: tutorials/custom-schema.md
+      - Validate realistic public pipeline output: tutorials/validate-realistic-pipeline.md
+
+  - How-to guides:
+      - how-to/index.md
+      - Interpret findings: how-to/interpret-findings.md
+      - Expected findings and false positives: how-to/false-positives.md
+      - Run strict validation: how-to/strict-validation.md
+      - Integrate with CI: how-to/ci-integration.md
+      - Work with large or backed AnnData: how-to/large-backed-anndata.md
+      - Resolve profile-level ambiguity: how-to/profile-level-ambiguity.md
+      - Troubleshoot common errors: how-to/troubleshooting.md
+
+  - Concepts:
+      - concepts/index.md
+      - What the validator assesses: concepts/what-the-validator-assesses.md
+      - Scientific boundaries: concepts/scientific-boundaries.md
+      - AnnData mapping: concepts/anndata-mapping.md
+      - Profile levels: concepts/profile-levels.md
+      - Severity and status semantics: concepts/severity-and-status.md
+      - Rule-code stability: concepts/rule-code-stability.md
+      - Schema and package versioning: concepts/versioning.md
+      - Truthful metadata and provenance: concepts/truthful-metadata.md
+
+  - Schemas and checks:
+      - schemas/index.md
+      - Built-in schemas: schemas/built-in.md
+      - Custom schema format: schemas/custom.md
+      - Alias resolution and precedence: schemas/aliases.md
+      - Rule catalogue: schemas/rule-catalogue.md
+
+  - CLI reference: reference/cli.md
+  - Python API: reference/python-api.md
+  - Public-data pilots:
+      - pilots/index.md
+      - JUMP compatibility derivation: pilots/jump-cp-derivation.md
+
+  - Project:
+      - project/index.md
+      - Status and roadmap: project/status-and-roadmap.md
+      - Known limitations: project/limitations.md
+      - Architecture decisions:
+          - project/decisions.md
+          - ADR-0001 Package architecture: decisions/ADR-0001-package-architecture.md
+          - ADR-0002 Stable rule codes: decisions/ADR-0002-stable-rule-codes.md
+          - ADR-0003 Severity and strict mode: decisions/ADR-0003-severity-and-strict-mode.md
+          - ADR-0004 Independent versioning: decisions/ADR-0004-independent-versioning.md
+          - ADR-0005 Alias resolution: decisions/ADR-0005-alias-resolution.md
+          - ADR-0006 Profile-level detection: decisions/ADR-0006-profile-level-detection.md
+          - ADR-0007 Truthful metadata: decisions/ADR-0007-truthful-metadata.md
+          - ADR-0008 Bounded sampling: decisions/ADR-0008-bounded-sampling.md
+      - Contributing: project/contributing.md
+      - Security: project/security.md
+      - Support: project/support.md
+      - Changelog: project/changelog.md
+      - Licence and citation: project/licence.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ronfinn/cell-painting-anndata-validator
+      name: cell-painting-anndata-validator on GitHub

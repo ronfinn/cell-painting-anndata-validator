@@ -7,7 +7,7 @@
 Validate one AnnData dataset and print (and optionally write) a report.
 This is the default action — you don't need to type `validate` explicitly;
 `cp-validate experiment.h5ad` and `cp-validate validate experiment.h5ad` are
-equivalent (see [contributing.md](contributing.md#the-argv-shim) for why an
+equivalent (see [Contributing](../project/contributing.md#the-argv-shim) for why an
 explicit `validate` subcommand exists at all).
 
 | Option | Default | Meaning |

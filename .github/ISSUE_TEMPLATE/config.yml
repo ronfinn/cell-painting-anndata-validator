@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Discussions
+    url: https://github.com/ronfinn/cell-painting-anndata-validator/discussions
+    about: Questions, ideas and general discussion that are not bug reports.
+  - name: Documentation
+    url: https://ronfinn.github.io/cell-painting-anndata-validator/
+    about: Installation, tutorials, concepts, CLI and API reference.
+  - name: Security advisory
+    url: https://github.com/ronfinn/cell-painting-anndata-validator/security/advisories/new
+    about: Report a suspected security vulnerability privately (not a validation finding).

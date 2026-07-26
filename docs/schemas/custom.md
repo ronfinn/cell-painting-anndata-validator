@@ -1,4 +1,4 @@
-# Schemas
+# Custom schema format
 
 A schema is a versioned, data-driven YAML document describing:
 
@@ -13,59 +13,6 @@ A schema is a versioned, data-driven YAML document describing:
 Schemas never contain code, and are parsed with `yaml.safe_load` only.
 Unknown top-level or per-field keys are rejected (not silently ignored) so a
 typo in a schema file surfaces immediately rather than being ignored.
-
-## Built-in schemas
-
-Both built-in schemas are currently at **`schema_version: "0.2.1"`**.
-
-| Name | Description |
-|---|---|
-| `generic-cell-painting` | Vendor-neutral schema; does not assume any single upstream pipeline's exact column names. |
-| `jump-cp` | A compatibility preset based on public [JUMP Cell Painting Consortium](https://jump-cellpainting.broadinstitute.org/) metadata conventions. **Not** an official JUMP-endorsed AnnData schema — see [jump-cp-derivation.md](jump-cp-derivation.md). |
-
-### `batch` alias precedence (v0.2.1)
-
-Aliases are tried in declaration order; the first case-insensitive exact match
-wins:
-
-| Schema | Order |
-|---|---|
-| `generic-cell-painting` | `batch_id` → `batch` → `Metadata_Batch` → `Metadata_Batch_Number` |
-| `jump-cp` | `Metadata_Batch` → `batch_id` → `Metadata_Batch_Number` |
-
-`Metadata_Batch_Number` is the LINCS-style batch field observed on Cell
-Painting Gallery Level 4b profiles.
-
-### `Metadata_pert_type` vs perturbation modality
-
-`Metadata_pert_type` is an alias of **`control_type`** only (control vs
-treatment / poscon / negcon / trt). It is **not** an alias of
-`perturbation_modality`. In LINCS exports that column commonly means control
-status, not chemical/genetic modality — see
-[public-data-pilots.md](public-data-pilots.md).
-
-### `perturbation_id` alias precedence (v0.2.0)
-
-Aliases are tried in declaration order; the first case-insensitive exact match
-wins (no regex or fuzzy matching):
-
-| Schema | Order |
-|---|---|
-| `jump-cp` | `Metadata_JCP2022` → `Metadata_broad_sample` → `Metadata_pert_iname` → `perturbation_id` → `pert_id` → `treatment_id` |
-| `generic-cell-painting` | `perturbation_id` → `pert_id` → `treatment_id` → `Metadata_broad_sample` → `Metadata_pert_iname` → `Metadata_JCP2022` |
-
-### Measurement families added in v0.2.0
-
-Both schemas now also recognize these CellProfiler families for `FEAT002`:
-`ObjectSkeleton`, `Math`, `Overlap`, `SizeShape`, `AreaOccupied`,
-`ImageQuality`.
-
-Inspect them with the CLI:
-
-```bash
-cp-validate schema list
-cp-validate schema show jump-cp
-```
 
 ## File format
 
@@ -92,17 +39,13 @@ measurement_families: [AreaShape, Intensity, Texture]
 - `aliases` is checked **in order**; the first alias that matches an actual
   `.obs`/`.var` column (case-insensitive, exact after trimming whitespace)
   wins. There is no regex or fuzzy matching — see
-  [limitations.md](limitations.md).
-- Because matching is case-insensitive, the same alias (case-insensitively)
-  cannot appear twice within one field's `aliases` list, nor be reused
-  across two different fields in the same schema — both are rejected at
-  load time with a descriptive `SchemaError`, since either would make
-  resolution ambiguous.
+  [Known limitations](../project/limitations.md) and
+  [Alias resolution](aliases.md).
 - `schema_version` must be a semantic version (`MAJOR.MINOR.PATCH`, with
   optional pre-release/build metadata, e.g. `"0.1.0"` or `"2.0.0-rc.1"`);
   anything else is rejected at load time.
 - `required_for` controls both the `IDENTxxx` completeness checks and
-  profile-level auto-detection (see [profile-levels.md](profile-levels.md)).
+  profile-level auto-detection (see [Profile levels](../concepts/profile-levels.md)).
 - `compartments` drives the `FEAT001` check: every feature name should start
   with `"<compartment>_"` for one of the listed compartments.
 - `measurement_families` drives the `FEAT002` check: every feature name that
@@ -132,4 +75,4 @@ mapped to CLI exit code 2, before any checks run.
 
 ## Adding a new built-in schema
 
-See [contributing.md](contributing.md#adding-a-schema).
+See [Contributing](../project/contributing.md#adding-a-schema).

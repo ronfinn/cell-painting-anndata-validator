@@ -50,7 +50,7 @@ provenance on reusable aggregated products.
 DeepProfiler-style embedding columns (for example `efficientnet_0`) have no
 CellProfiler compartment prefix, so `FEAT001` still warns on every such
 feature. Changing that behaviour is deferred; see
-[false-positives.md](false-positives.md).
+[Expected findings and false positives](../how-to/false-positives.md).
 
 ## Custom schema authoring has no wizard
 

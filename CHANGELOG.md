@@ -6,13 +6,42 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0b1] - 2026-07-26
+
+First public beta. Package version `0.2.0b1` is independent of the built-in
+schema versions (`schema_version: "0.2.1"` for both built-ins after
+batch-alias calibration).
+
 ### Added
 
-- **Public-data pilot documentation.** `docs/public-data-pilots.md` records
-  genuine Cell Painting Gallery pilots for LINCS (`cpg0004-lincs`) and JUMP
+- **MkDocs Material documentation site** with Diátaxis-style navigation,
+  mkdocstrings API pages, ADRs, and GitHub Pages deploy workflow. Published
+  at https://ronfinn.github.io/cell-painting-anndata-validator/.
+- **Professional repository presentation.** Concise README landing page,
+  `project.urls`, community-health files (issue forms, PR template, Code of
+  Conduct, Security, Support), and typed-package marker (`py.typed`).
+- **Public-data pilot documentation.** `docs/pilots/` records genuine Cell
+  Painting Gallery pilots for LINCS (`cpg0004-lincs`) and JUMP
   (`cpg0000-jump-pilot`): Zenodo LFS pitfall, CPG prefixes, truthful conversion
   mapping, JUMP `*_feature_select_batch*` naming, and expected governance
   warnings.
+- **Realistic Cell Painting fixtures and baseline tests.** Programmatic
+  CellProfiler/CytoTable single-cell, pycytominer well, and JUMP treatment
+  builders (`tests/fixtures/realistic.py`) with pinned bare-pipeline issue
+  baselines (`tests/test_realistic_baselines.py`).
+- **Container and loading-mode parity.** End-to-end tests asserting identical
+  issue-code sets across dense / CSR / CSC × in-memory / backed for the same
+  logical dataset (`tests/test_realistic_parity.py`).
+- **`cp-validate --version`.** Prints the installed package version and exits
+  0.
+- **`IDENT000` documentation and coverage.** Documents the custom-schema
+  fallback rule code and tests that it is emitted when a custom schema
+  requires an additional identifier field.
+- **False-positive documentation.** `docs/how-to/false-positives.md` records,
+  for every validation category, whether real pipeline output can trigger it
+  and whether that is governance signalling or a likely false positive.
+- **Release smoke coverage.** Package/schema version assertions and an
+  isolated-wheel smoke script (`scripts/smoke_wheel.sh`).
 
 ### Changed
 
@@ -34,32 +63,6 @@ follows [Semantic Versioning](https://semver.org/).
   0.2.1 with the same pass/strict/backed/auto-detect pattern; identical issue
   set under `generic-cell-painting`. No release-blocking defects.
 
-## [0.2.0b1] - 2026-07-26
-
-First public beta. Package version `0.2.0b1` is independent of the built-in
-schema versions (originally `schema_version: "0.2.0"` at beta cut; see
-`[Unreleased]` for the subsequent `0.2.1` batch-alias calibration).
-
-### Added
-
-- **Realistic Cell Painting fixtures and baseline tests.** Programmatic
-  CellProfiler/CytoTable single-cell, pycytominer well, and JUMP treatment
-  builders (`tests/fixtures/realistic.py`) with pinned bare-pipeline issue
-  baselines (`tests/test_realistic_baselines.py`).
-- **Container and loading-mode parity.** End-to-end tests asserting identical
-  issue-code sets across dense / CSR / CSC × in-memory / backed for the same
-  logical dataset (`tests/test_realistic_parity.py`).
-- **`cp-validate --version`.** Prints the installed package version and exits
-  0.
-- **`IDENT000` documentation and coverage.** Documents the custom-schema
-  fallback rule code and tests that it is emitted when a custom schema
-  requires an additional identifier field.
-- **False-positive documentation.** `docs/false-positives.md` records, for
-  every validation category, whether real pipeline output can trigger it and
-  whether that is governance signalling or a likely false positive.
-- **Release smoke coverage.** Package/schema version assertions and an
-  isolated-wheel smoke script (`scripts/smoke_wheel.sh`).
-
 ### Fixed
 
 - **String `profile_level` in the public API.** `validate(..., profile_level="well")`
@@ -69,41 +72,20 @@ schema versions (originally `schema_version: "0.2.0"` at beta cut; see
   longer crash if an accidentally unvalidated `model_copy` leaves a raw
   string on `ProfileLevelResult`.
 
-### Changed
+### Also in this beta (schema vocabulary from the `0.2.0` cut)
 
-- **Built-in schemas → `0.2.0`.** Both `generic-cell-painting` and `jump-cp`
-  bump their schema vocabulary versions (package version remains independent).
-- **Schema vocabulary calibration.** Measurement families now include
-  `ObjectSkeleton`, `Math`, `Overlap`, `SizeShape`, `AreaOccupied`, and
-  `ImageQuality`.
-- **JUMP perturbation aliases.** `perturbation_id` resolves
-  `Metadata_JCP2022`, `Metadata_broad_sample`, and `Metadata_pert_iname`
-  with documented, schema-specific precedence (exact, case-insensitive;
-  no fuzzy/regex matching).
-- **JUMP control-label prefixes.** Case-insensitive `poscon_` / `negcon_`
-  prefixes are accepted alongside the canonical control labels.
+- Built-in schemas first advanced to `0.2.0` with expanded measurement
+  families (`ObjectSkeleton`, `Math`, `Overlap`, `SizeShape`,
+  `AreaOccupied`, `ImageQuality`), JUMP `perturbation_id` alias precedence,
+  and case-insensitive `poscon_` / `negcon_` control-label prefixes.
 - **`AGG001` warning policy.** Missing aggregation provenance on well- or
   treatment-level data still emits `AGG001`, but as a **warning**. Normal
   validation does not fail for `AGG001` alone; `--strict` does. Incomplete
   aggregation blocks still emit `AGG002` / `AGG003`. `IDENT006` remains an
   error when treatment rows cannot be traced.
-
-### Validated (public Gallery pilots)
-
-The `0.2.0b1` beta line was exercised against genuine Cell Painting Gallery
-profiles (conversion and reports kept outside the Git repository):
-
-- one LINCS Level 4b plate (`cpg0004-lincs`, `SQ00014812`, 384 × 493) under
-  `generic-cell-painting`;
-- one JUMP pilot plate (`cpg0000-jump-pilot`, `BR00116991`, 384 × 838) under
-  `jump-cp`;
-- normal and `--backed` loading;
-- explicit `--profile-level well` and automatic profile-level selection.
-
-Neither pilot exposed a release-blocking validator defect. Remaining findings
-were expected governance or source-metadata warnings (for example `AGG001`,
-`IDENT007`, licence/schema/provenance gaps, and missing batch/source columns
-on the JUMP profile table).
+- Remaining pilot findings were expected governance or source-metadata
+  warnings (for example `AGG001`, `IDENT007`, licence/schema/provenance
+  gaps, and missing batch/source columns on the JUMP profile table).
 
 ### Known limitations
 

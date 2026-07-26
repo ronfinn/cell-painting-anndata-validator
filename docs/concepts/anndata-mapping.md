@@ -21,7 +21,7 @@ for these specific shapes:
 
 ```python
 adata.uns["schema_id"] = "generic-cell-painting"
-adata.uns["schema_version"] = "0.2.0"
+adata.uns["schema_version"] = "0.2.1"
 adata.uns["processing_stage"] = "normalized"  # raw | normalized | aggregated | ...
 adata.uns["licence"] = "CC0-1.0"
 
@@ -43,6 +43,6 @@ adata.uns["aggregation"] = {
 }
 ```
 
-See [checks.md](checks.md) for exactly which rule code each block's absence
-triggers, and [schemas.md](schemas.md) for how `.obs`/`.var` columns are
+See [Rule catalogue](../schemas/rule-catalogue.md) for exactly which rule code each block's absence
+triggers, and [Schemas](../schemas/index.md) for how `.obs`/`.var` columns are
 resolved via aliases (a separate mechanism from these `.uns` blocks).

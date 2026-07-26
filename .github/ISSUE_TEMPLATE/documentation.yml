@@ -1,0 +1,22 @@
+name: Documentation
+description: Report a docs gap, broken link or unclear page.
+title: "[docs] "
+labels: ["documentation"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page URL or path
+      placeholder: https://ronfinn.github.io/cell-painting-anndata-validator/...
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is wrong or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
