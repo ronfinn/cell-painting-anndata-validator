@@ -68,7 +68,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --python 3.12 --all-groups
+        run: uv sync --python 3.14 --all-groups
 
       - name: Build documentation (strict)
         run: uv run mkdocs build --strict

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -18,6 +19,17 @@ from tests.fixtures.synthetic import make_single_cell_adata, make_well_level_ada
 # `cli.app -> module` binding. `importlib.import_module` reads straight from `sys.modules`
 # and sidesteps that attribute-traversal footgun, unlike `import cp_anndata_validator.cli.app`.
 cli_app = importlib.import_module("cp_anndata_validator.cli.app")
+
+# Rich 15+ with force_terminal (triggered by GITHUB_ACTIONS + TERM env vars) applies
+# per-span ANSI codes that can split a "--option" name across two escape sequences,
+# e.g. "\x1b[1;36m-\x1b[0m\x1b[1;36m-version\x1b[0m", making bare substring
+# search unreliable.  Strip codes before any assertion on option presence.
+_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[mGKHFABCDsu]")
+
+
+def _strip_ansi(text: str) -> str:
+    return _ANSI_ESCAPE_RE.sub("", text)
+
 
 runner = CliRunner()
 
@@ -235,4 +247,4 @@ def test_version_option_needs_no_subcommand_or_dataset_path() -> None:
 def test_version_option_is_listed_in_top_level_help() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "--version" in result.stdout
+    assert "--version" in _strip_ansi(result.stdout)
