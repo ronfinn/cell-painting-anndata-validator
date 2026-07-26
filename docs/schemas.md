@@ -70,7 +70,7 @@ measurement_families: [AreaShape, Intensity, Texture]
   codes/messages) to a `FieldSpec`.
 - `aliases` is checked **in order**; the first alias that matches an actual
   `.obs`/`.var` column (case-insensitive, exact after trimming whitespace)
-  wins. There is no regex or fuzzy matching in v0.1 — see
+  wins. There is no regex or fuzzy matching — see
   [limitations.md](limitations.md).
 - Because matching is case-insensitive, the same alias (case-insensitively)
   cannot appear twice within one field's `aliases` list, nor be reused

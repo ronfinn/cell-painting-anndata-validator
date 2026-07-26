@@ -35,6 +35,22 @@ class ProfileLevel(StrEnum):
     TREATMENT = "treatment"
 
 
+def profile_level_label(level: ProfileLevel | str | None, *, default: str = "unknown") -> str:
+    """Return a display string for a profile level without requiring an enum member.
+
+    The public API coerces caller-supplied strings to :class:`ProfileLevel`, but
+    an accidentally unvalidated ``model_copy(update=...)`` can still leave a raw
+    string on :class:`ProfileLevelResult`. Call sites that format messages should
+    use this helper instead of ``level.value`` so a check never crashes solely
+    because of that defensive gap. Unsupported values are *not* accepted by
+    :func:`cp_anndata_validator.api.validate` — this is formatting-only.
+    """
+    if level is None:
+        return default
+    value = getattr(level, "value", level)
+    return str(value)
+
+
 class ProfileLevelResult(BaseModel):
     """The declared and/or auto-detected profile level for a dataset."""
 

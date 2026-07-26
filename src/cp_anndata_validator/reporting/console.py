@@ -16,6 +16,7 @@ from rich.text import Text
 
 from cp_anndata_validator.models.issue import Severity
 from cp_anndata_validator.models.report import Report
+from cp_anndata_validator.profiles import profile_level_label
 
 _SEVERITY_STYLES: dict[Severity, str] = {
     Severity.ERROR: "bold red",
@@ -37,9 +38,9 @@ def render_console(report: Report, *, width: int = _DEFAULT_WIDTH) -> str:
     console.print(f"Schema: {report.schema_id} v{report.schema_version}")
 
     profile = report.profile_level
-    effective = profile.effective.value if profile.effective else "unknown"
-    declared = profile.declared.value if profile.declared else "none"
-    detected = profile.detected.value if profile.detected else "none"
+    effective = profile_level_label(profile.effective, default="unknown")
+    declared = profile_level_label(profile.declared, default="none")
+    detected = profile_level_label(profile.detected, default="none")
     console.print(f"Profile level: {effective} (declared={declared}, detected={detected})")
     console.print()
 

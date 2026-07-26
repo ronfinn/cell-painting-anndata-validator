@@ -47,6 +47,6 @@ print(report.status)   # "pass" or "fail"
   likely false positives.
 - [`jump-cp-derivation.md`](jump-cp-derivation.md) — provenance of the
   `jump-cp` compatibility preset.
-- [`limitations.md`](limitations.md) — known v0.1 gaps and caveats.
+- [`limitations.md`](limitations.md) — known v0.2 gaps and caveats.
 - [`contributing.md`](contributing.md) — dev workflow, how to add a check
   or schema.

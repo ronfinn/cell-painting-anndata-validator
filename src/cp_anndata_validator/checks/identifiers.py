@@ -9,7 +9,7 @@ import pandas as pd
 from cp_anndata_validator.checks.aggregation import has_adequate_aggregation_provenance
 from cp_anndata_validator.checks.registry import CheckContext, register_check
 from cp_anndata_validator.models.issue import Category, Issue, Severity
-from cp_anndata_validator.profiles import ProfileLevel
+from cp_anndata_validator.profiles import ProfileLevel, profile_level_label
 
 _IDENTIFIER_RULE_CODES: dict[str, str] = {
     "plate": "IDENT001",
@@ -49,7 +49,7 @@ def check_identifier_completeness(ctx: CheckContext) -> list[Issue]:
                 location=f"obs.{field_name}",
                 message=(
                     f"No column matched the canonical field {field_name!r}, which is "
-                    f"required for the {level.value} profile level."
+                    f"required for the {profile_level_label(level)} profile level."
                 ),
                 evidence=(f"checked aliases: {', '.join(spec.aliases)}" if spec else None),
                 remediation=(

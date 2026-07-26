@@ -73,23 +73,24 @@ BARE_BASELINES: tuple[BareBaseline, ...] = (
         name="pycytominer-well",
         build=make_pycytominer_well_profile,
         schema="generic-cell-painting",
-        # AGG001 is an *error*: an aggregated profile that does not say how it
-        # was aggregated fails, so standard pycytominer output exits non-zero.
+        # AGG001 is a warning: missing aggregation provenance is still reported,
+        # but normal (non-strict) validation passes when no errors remain.
         expected_codes=(*UNDECLARED_METADATA_CODES, "AGG001"),
-        expected_status="fail",
+        expected_status="pass",
         expected_level=ProfileLevel.WELL,
-        expected_severities={Severity.ERROR: 1, Severity.WARNING: 8},
+        expected_severities={Severity.WARNING: 9},
     ),
     BareBaseline(
         name="jump-treatment",
         build=make_jump_treatment_profile,
         schema="jump-cp",
-        # IDENT006 as well: plate/well were aggregated away, and without
+        # IDENT006 remains an error: plate/well were aggregated away, and without
         # uns['aggregation'] the rows cannot be traced back to source data.
+        # AGG001 is now a warning, so only IDENT006 keeps status=fail.
         expected_codes=(*UNDECLARED_METADATA_CODES, "AGG001", "IDENT006"),
         expected_status="fail",
         expected_level=ProfileLevel.TREATMENT,
-        expected_severities={Severity.ERROR: 2, Severity.WARNING: 8},
+        expected_severities={Severity.ERROR: 1, Severity.WARNING: 9},
     ),
 )
 

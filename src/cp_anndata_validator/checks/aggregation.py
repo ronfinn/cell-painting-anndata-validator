@@ -6,12 +6,14 @@ from typing import Any
 
 from cp_anndata_validator.checks.registry import CheckContext, register_check
 from cp_anndata_validator.models.issue import Category, Issue, Severity
-from cp_anndata_validator.profiles import ProfileLevel
+from cp_anndata_validator.profiles import ProfileLevel, profile_level_label
 
 _AGGREGATED_LEVELS = (ProfileLevel.WELL, ProfileLevel.TREATMENT)
 
 
 def _applies_to_aggregated_levels(ctx: CheckContext) -> bool:
+    # StrEnum members compare equal to their string values, so an accidentally
+    # uncoerced "well"/"treatment" string still selects this check correctly.
     return ctx.profile.effective in _AGGREGATED_LEVELS
 
 
@@ -40,16 +42,15 @@ def has_adequate_aggregation_provenance(ctx: CheckContext) -> bool:
     applies=_applies_to_aggregated_levels,
 )
 def check_aggregation_provenance(ctx: CheckContext) -> list[Issue]:
-    """Well/treatment profiles must declare their aggregation method and replicate count."""
+    """Well/treatment profiles should declare their aggregation method and replicate count."""
     aggregation = _aggregation_block(ctx)
-    level = ctx.profile.effective
-    level_name = level.value if level else "aggregated"
+    level_name = profile_level_label(ctx.profile.effective, default="aggregated")
 
     if not aggregation or not aggregation.get("method"):
         return [
             Issue(
                 code="AGG001",
-                severity=Severity.ERROR,
+                severity=Severity.WARNING,
                 category=Category.AGGREGATION,
                 location="uns.aggregation",
                 message=(

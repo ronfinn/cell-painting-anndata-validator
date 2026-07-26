@@ -24,6 +24,10 @@ All four checks (`pytest`, `ruff check`, `ruff format --check`, `mypy`) and
 exactly what CI (and the milestone acceptance criteria used to build this
 package) run.
 
+For a full **release** checklist (including the isolated wheel smoke test and
+package/schema version independence checks), see the root
+[`CONTRIBUTING.md`](../CONTRIBUTING.md#release-checklist-pre-publish).
+
 ## Repository layout
 
 ```

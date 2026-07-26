@@ -55,7 +55,7 @@ def _shared_provenance_metadata() -> dict[str, object]:
     """The full set of ``uns`` blocks every provenance/licence/schema check looks for."""
     return {
         "schema_id": "generic-cell-painting",
-        "schema_version": "0.1.0",
+        "schema_version": "0.2.0",
         "licence": "CC0-1.0",
         "experiment": {"instrument": "generic-scope", "protocol": "cell-painting-v1"},
         "image_provenance": {"microscope": "generic", "illumination_correction": True},

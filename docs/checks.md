@@ -105,7 +105,7 @@ names the canonical field instead (for example `obs.plate`).
 
 | Code | Severity | Meaning | Remediation |
 |---|---|---|---|
-| `AGG001` | error | No aggregation method declared (`uns['aggregation']['method']`). | Record how rows were aggregated in `uns['aggregation']['method']`. |
+| `AGG001` | warning | No aggregation method declared (`uns['aggregation']['method']`). Does not fail a normal run by itself; fails under `--strict`. | Record how rows were aggregated in `uns['aggregation']['method']`. Strongly recommended for reusable aggregated data products. |
 | `AGG002` | warning | No replicate count declared (`uns['aggregation']['replicate_count']`). | Record the number of replicates aggregated per row in `uns['aggregation']['replicate_count']`. |
 | `AGG003` | warning | No source profile level declared (`uns['aggregation']['source_level']`) — the level rows were aggregated *from* (for example `single-cell` or `well`). | Record which profile level rows were aggregated from in `uns['aggregation']['source_level']`. |
 

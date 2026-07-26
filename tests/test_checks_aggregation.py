@@ -61,7 +61,7 @@ def test_flags_missing_aggregation_method() -> None:
     issues = check_aggregation_provenance(ctx)
 
     assert [issue.code for issue in issues] == ["AGG001"]
-    assert issues[0].severity.value == "error"
+    assert issues[0].severity.value == "warning"
 
 
 def test_flags_missing_replicate_count() -> None:

@@ -6,6 +6,75 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0b1] - 2026-07-26
+
+First public beta. Package version `0.2.0b1` is independent of the built-in
+schema versions, which remain at `schema_version: "0.2.0"`.
+
+### Added
+
+- **Realistic Cell Painting fixtures and baseline tests.** Programmatic
+  CellProfiler/CytoTable single-cell, pycytominer well, and JUMP treatment
+  builders (`tests/fixtures/realistic.py`) with pinned bare-pipeline issue
+  baselines (`tests/test_realistic_baselines.py`).
+- **Container and loading-mode parity.** End-to-end tests asserting identical
+  issue-code sets across dense / CSR / CSC × in-memory / backed for the same
+  logical dataset (`tests/test_realistic_parity.py`).
+- **`cp-validate --version`.** Prints the installed package version and exits
+  0.
+- **`IDENT000` documentation and coverage.** Documents the custom-schema
+  fallback rule code and tests that it is emitted when a custom schema
+  requires an additional identifier field.
+- **False-positive documentation.** `docs/false-positives.md` records, for
+  every validation category, whether real pipeline output can trigger it and
+  whether that is governance signalling or a likely false positive.
+- **Release smoke coverage.** Package/schema version assertions and an
+  isolated-wheel smoke script (`scripts/smoke_wheel.sh`).
+
+### Fixed
+
+- **String `profile_level` in the public API.** `validate(..., profile_level="well")`
+  is coerced to `ProfileLevel` before checks run; unsupported values raise
+  `ValueError` immediately instead of producing `ENGINE001`.
+- **Defensive profile-level formatting.** Checks and the console renderer no
+  longer crash if an accidentally unvalidated `model_copy` leaves a raw
+  string on `ProfileLevelResult`.
+
+### Changed
+
+- **Built-in schemas → `0.2.0`.** Both `generic-cell-painting` and `jump-cp`
+  bump their schema vocabulary versions (package version remains independent).
+- **Schema vocabulary calibration.** Measurement families now include
+  `ObjectSkeleton`, `Math`, `Overlap`, `SizeShape`, `AreaOccupied`, and
+  `ImageQuality`.
+- **JUMP perturbation aliases.** `perturbation_id` resolves
+  `Metadata_JCP2022`, `Metadata_broad_sample`, and `Metadata_pert_iname`
+  with documented, schema-specific precedence (exact, case-insensitive;
+  no fuzzy/regex matching).
+- **JUMP control-label prefixes.** Case-insensitive `poscon_` / `negcon_`
+  prefixes are accepted alongside the canonical control labels.
+- **`AGG001` warning policy.** Missing aggregation provenance on well- or
+  treatment-level data still emits `AGG001`, but as a **warning**. Normal
+  validation does not fail for `AGG001` alone; `--strict` does. Incomplete
+  aggregation blocks still emit `AGG002` / `AGG003`. `IDENT006` remains an
+  error when treatment rows cannot be traced.
+
+### Known limitations
+
+- **`FEAT001` on embedding-style feature names.** DeepProfiler-style names
+  such as `efficientnet_0` have no CellProfiler compartment prefix, so
+  `FEAT001` still warns on every such feature. Changing that behaviour is
+  deferred.
+- **Sampled numeric checks.** Non-finite / AI-readiness checks on large or
+  backed matrices use bounded row sampling (`--sample-rows`, default 5000),
+  not an exhaustive scan of every value.
+- **No Zarr support.** Only `.h5ad` input is accepted.
+- **No automatic repair.** The validator never modifies, converts, or
+  "fixes" the input AnnData file.
+- **Synthetic fixtures are not a substitute for external validation.** The
+  realistic builders model public pipeline conventions; they do not replace
+  testing against real laboratory or consortium datasets.
+
 ## [0.1.0a1] - 2026-07-19
 
 Initial public alpha release.

@@ -54,7 +54,7 @@ See [`docs/contributing.md`](docs/contributing.md) for:
 
 Also see [`docs/checks.md`](docs/checks.md) (the rule-code catalogue you'll
 be adding to) and [`docs/limitations.md`](docs/limitations.md) (documented
-v0.1 gaps — check there before assuming something is a bug).
+documented gaps — check there before assuming something is a bug).
 
 ## Pull requests
 
@@ -75,6 +75,36 @@ Open an issue with:
 - a minimal reproducing AnnData shape (obs/var columns, `uns` keys — not the
   actual data, if sensitive), and
 - the command/API call and its actual vs. expected output.
+
+## Release checklist (pre-publish)
+
+Run before tagging or publishing a release. Do **not** publish to PyPI from
+automation without an explicit human decision.
+
+```bash
+uv sync --all-groups
+uv run pytest -q
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy src
+uv build
+uv run cp-validate --version          # must match pyproject.toml / CITATION.cff
+uv run cp-validate --help
+uv run cp-validate schema list
+uv run cp-validate schema show jump-cp
+git diff --check
+bash scripts/smoke_wheel.sh           # isolated wheel install + CLI smoke (temp venv)
+```
+
+Also confirm manually:
+
+- [ ] Package version in `pyproject.toml` and `CITATION.cff` match
+      `uv run cp-validate --version`.
+- [ ] Built-in schema versions remain independent (currently
+      `schema_version: "0.2.0"`) — do not confuse them with the package version.
+- [ ] `CHANGELOG.md` has an entry for this version.
+- [ ] No `.h5ad` binaries are tracked (`git ls-files '*.h5ad'` is empty).
+- [ ] PyPI publication remains a separate, deliberate decision.
 
 ## Code of conduct
 

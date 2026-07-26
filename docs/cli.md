@@ -12,12 +12,13 @@ explicit `validate` subcommand exists at all).
 
 | Option | Default | Meaning |
 |---|---|---|
+| `--version` | — | Print the installed package version and exit 0. Independent of built-in schema versions. |
 | `--schema TEXT` | `generic-cell-painting` | Built-in schema name or path to a custom schema YAML file. |
 | `--profile-level [single-cell\|well\|treatment]` | none (auto-detect) | Declare the profile level, overriding auto-detection. |
 | `--report PATH` | none | Also write a report to this path. Format is inferred from the `.json`/`.html` suffix. Refuses to overwrite an existing file unless `--force` is also given. |
 | `--backed / --no-backed` | auto (by file size) | Force backed or in-memory loading. |
 | `--sample-rows INTEGER` | `5000` | Maximum rows sampled for numeric/AI-readiness checks. |
-| `--strict` | off | Treat warning-severity issues as failures too. |
+| `--strict` | off | Treat warning-severity issues as failures too. Warnings alone do not fail a normal run. |
 | `--quiet, -q` | off | Suppress console output (`--report` still writes). |
 | `--force` | off | Allow `--report` to overwrite an existing file. |
 
@@ -41,25 +42,30 @@ requirements, and declared compartments.
 ## Examples
 
 ```bash
+# Installed package version (not the schema version).
+cp-validate --version
+
 # Basic validation, console report only.
 cp-validate experiment.h5ad
 
-# Write an HTML report as well.
-cp-validate experiment.h5ad --report report.html
-
-# Write a JSON report as well.
-cp-validate experiment.h5ad --report report.json
-
-# Validate against the JUMP compatibility preset.
+# Built-in schemas: generic Cell Painting or the JUMP compatibility preset.
+cp-validate experiment.h5ad --schema generic-cell-painting
 cp-validate experiment.h5ad --schema jump-cp
 
 # Declare the profile level instead of relying on auto-detection.
 cp-validate experiment.h5ad --profile-level single-cell
+cp-validate experiment.h5ad --profile-level well
+cp-validate experiment.h5ad --profile-level treatment
+
+# Write an HTML or JSON report as well.
+cp-validate experiment.h5ad --report report.html
+cp-validate experiment.h5ad --report report.json
 
 # List and inspect built-in schemas.
 cp-validate schema list
 cp-validate schema show jump-cp
 
-# Use in a CI pipeline: fail the build on any warning too.
+# Use in a CI pipeline: fail the build on any warning too
+# (including AGG001 for missing aggregation provenance).
 cp-validate experiment.h5ad --strict --quiet --report report.json
 ```

@@ -29,9 +29,10 @@ The validator does not modify, convert, or automatically repair the input
 AnnData file. It returns structured validation results and can write console,
 JSON, or HTML reports.
 
-> **Project status:** Alpha. The rule catalogue, built-in schemas, and public
-> API may evolve as the validator is tested against additional real-world
-> Cell Painting datasets.
+> **Project status:** Beta (`0.2.0b1`). The public API and rule codes are
+> stable enough for local and CI use; built-in schema *vocabulary* may still
+> grow. Package version and built-in `schema_version` are independent — this
+> release ships package `0.2.0b1` with schemas at `schema_version: "0.2.0"`.
 
 
 
@@ -50,6 +51,7 @@ JSON, or HTML reports.
 - [Python API](#python-api)
 - [Examples](#examples)
 - [Exit codes](#exit-codes)
+- [Realistic pipeline output](#realistic-pipeline-output)
 - [Limitations](#limitations)
 - [Development](#development)
 - [Contributing](#contributing)
@@ -144,6 +146,7 @@ uv sync
 Confirm that the CLI is available:
 
 ```bash
+uv run cp-validate --version
 uv run cp-validate --help
 uv run cp-validate schema list
 ```
@@ -167,14 +170,19 @@ uv build
 Install the wheel into another environment:
 
 ```bash
-python -m pip install dist/cp_anndata_validator-0.1.0a1-py3-none-any.whl
+python -m pip install dist/cp_anndata_validator-0.2.0b1-py3-none-any.whl
 ```
 
 The command can then be used without `uv run`:
 
 ```bash
+cp-validate --version
 cp-validate validate experiment.h5ad
 ```
+
+An isolated-wheel smoke test is provided as `scripts/smoke_wheel.sh`
+(see [Contributing](#contributing)). It installs the local wheel into a
+temporary virtual environment and does not modify the project's `.venv`.
 
 
 
@@ -422,10 +430,13 @@ uv run cp-validate validate \
   --profile-level treatment
 ```
 
-Detection may return an ambiguous result rather than silently choosing an
-unsupported profile level.
+Detection may return an ambiguous result rather than guessing. Pass
+`--profile-level` (or `profile_level=` in Python) to disambiguate. The
+Python API accepts either a `ProfileLevel` member or its string value
+(`"single-cell"`, `"well"`, `"treatment"`); unsupported values raise
+`ValueError` before any checks run.
 
-See `[docs/profile-levels.md](docs/profile-levels.md)` for details.
+See [`docs/profile-levels.md`](docs/profile-levels.md) for details.
 
 ## AnnData mapping
 
@@ -465,23 +476,16 @@ A schema is a versioned YAML document that defines:
 
 ### Built-in schemas
 
-List the available schemas:
+Both built-in schemas are currently at **`schema_version: "0.2.0"`**. That
+schema version is independent of the package version (`0.2.0b1`).
+
+List and inspect:
 
 ```bash
 uv run cp-validate schema list
-```
-
-Inspect a schema:
-
-```bash
 uv run cp-validate schema show generic-cell-painting
-```
-
-```bash
 uv run cp-validate schema show jump-cp
 ```
-
-The package currently includes:
 
 ### `generic-cell-painting`
 
@@ -490,12 +494,12 @@ without requiring one upstream pipeline or column spelling.
 
 ### `jump-cp`
 
-A compatibility preset based on public JUMP Cell Painting Consortium metadata
-conventions and common cytomining feature-naming patterns.
+A **compatibility preset** based on public JUMP Cell Painting Consortium
+metadata conventions and common cytomining feature-naming patterns.
 
 It is **not** an official or JUMP-endorsed AnnData standard.
 
-See `[docs/jump-cp-derivation.md](docs/jump-cp-derivation.md)` for its sources,
+See [`docs/jump-cp-derivation.md`](docs/jump-cp-derivation.md) for its sources,
 scope, and limitations.
 
 ### Custom schemas
@@ -550,7 +554,7 @@ uv run cp-validate validate \
 
 ### Current report-path limitation
 
-The current alpha release records the resolved input-file path in generated
+The current beta release records the resolved input-file path in generated
 HTML and JSON reports.
 
 This is not a credential leak, but it may expose a local username or directory
@@ -561,40 +565,39 @@ environment. A privacy-preserving display-path implementation is planned.
 
 ## CLI reference
 
-Validate a dataset:
+Print the installed package version:
+
+```bash
+cp-validate --version
+```
+
+Validate a dataset (default schema `generic-cell-painting`):
 
 ```bash
 cp-validate validate experiment.h5ad
+# argv shim also allows: cp-validate experiment.h5ad
 ```
 
 Choose a schema:
 
 ```bash
+cp-validate validate experiment.h5ad --schema generic-cell-painting
 cp-validate validate experiment.h5ad --schema jump-cp
 ```
 
 Declare profile level:
 
 ```bash
-cp-validate validate \
-  experiment.h5ad \
-  --profile-level single-cell
+cp-validate validate experiment.h5ad --profile-level single-cell
+cp-validate validate experiment.h5ad --profile-level well
+cp-validate validate experiment.h5ad --profile-level treatment
 ```
 
-Generate HTML:
+Generate HTML or JSON:
 
 ```bash
-cp-validate validate \
-  experiment.h5ad \
-  --report report.html
-```
-
-Generate JSON:
-
-```bash
-cp-validate validate \
-  experiment.h5ad \
-  --report report.json
+cp-validate validate experiment.h5ad --report report.html
+cp-validate validate experiment.h5ad --report report.json
 ```
 
 Treat warnings as failures:
@@ -602,6 +605,10 @@ Treat warnings as failures:
 ```bash
 cp-validate validate experiment.h5ad --strict
 ```
+
+Warnings alone do **not** fail a normal run (exit 0). With `--strict`, any
+warning — including missing aggregation provenance (`AGG001`) — fails
+validation (exit 1). Errors always fail.
 
 Suppress console output while writing a report:
 
@@ -671,7 +678,7 @@ for issue in report.issues:
     )
 ```
 
-Select a schema and profile level:
+Select a schema and profile level (enum or string):
 
 ```python
 from cp_anndata_validator import ProfileLevel, validate
@@ -679,9 +686,12 @@ from cp_anndata_validator import ProfileLevel, validate
 report = validate(
     "experiment.h5ad",
     schema="jump-cp",
-    profile_level=ProfileLevel.SINGLE_CELL,
+    profile_level=ProfileLevel.WELL,
     strict=False,
 )
+
+# Equivalent string form — coerced to ProfileLevel before checks run:
+report = validate("experiment.h5ad", profile_level="well")
 ```
 
 Render reports:
@@ -746,35 +756,53 @@ The generated `.h5ad`, `.html`, and `.json` files are ignored by Git.
 | `2`                 | Validation could not run because of an invalid file, schema, argument, or runtime failure |
 
 
-Validation findings and runtime failures are intentionally distinguished.
+Warnings alone do not produce exit code `1` unless `--strict` is selected.
+Missing aggregation provenance (`AGG001`) is a warning: a well-level
+pycytominer-style export can pass normally and only fail under `--strict`.
+Incomplete aggregation metadata still raises `AGG002` / `AGG003`; treatment
+profiles that cannot be traced still fail with `IDENT006` (error).
 
-A dataset can fail validation with exit code `1` while the validator itself is
-working correctly.
+## Realistic pipeline output
+
+Bare CellProfiler / CytoTable / pycytominer exports often lack `.uns` schema,
+licence, provenance, and aggregation blocks. That is expected: those findings
+are governance signalling, not proof the matrix is scientifically wrong.
+
+See [`docs/false-positives.md`](docs/false-positives.md) for the pinned
+baselines, category-by-category interpretation, and how to reach a clean
+report. The complete rule catalogue lives in
+[`docs/checks.md`](docs/checks.md).
 
 ## Limitations
 
-The current alpha release deliberately has a limited scope.
+The current beta release deliberately has a limited scope.
 
 - Numeric checks on large backed datasets use bounded row sampling rather than
-reading or densifying the complete matrix.
+  reading or densifying the complete matrix (dense, CSR, and CSC are all
+  supported in-memory and backed).
 - Alias matching is case- and whitespace-insensitive but not fuzzy or
-typo-tolerant.
+  typo-tolerant.
 - `.uns` metadata blocks are checked for presence and plausible structure, not
-yet against exhaustive nested schemas.
+  yet against exhaustive nested schemas.
+- Embedding-style feature names (for example `efficientnet_0`) still trigger
+  `FEAT001`; special-casing that behaviour is deferred.
 - Custom schemas must currently be written manually.
 - Generated reports currently include the resolved input-file path.
+- Zarr input is not supported; only `.h5ad` is accepted.
 - The package has not yet been published to PyPI.
 - The built-in JUMP preset is a compatibility preset, not an official JUMP
-AnnData standard.
+  AnnData standard.
+- Synthetic realistic fixtures model public conventions; they are not a
+  substitute for validating real laboratory or consortium datasets.
 - Basic AI-readiness checks identify technical concerns such as non-finite
-values, constant features, missing metadata, and incomplete provenance.
-They do not certify biological validity, experimental design quality,
-absence of confounding, appropriate normalisation, or expected model
-performance.
+  values, constant features, missing metadata, and incomplete provenance.
+  They do not certify biological validity, experimental design quality,
+  absence of confounding, appropriate normalisation, or expected model
+  performance.
 - Passing validation does not prove that a dataset is scientifically correct
-or suitable for every downstream use.
+  or suitable for every downstream use. The validator never modifies input.
 
-See `[docs/limitations.md](docs/limitations.md)` for more detail.
+See [`docs/limitations.md`](docs/limitations.md) for more detail.
 
 ## Architecture
 

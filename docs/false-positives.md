@@ -37,17 +37,18 @@ issues) at every profile level. The bare variants report exactly this:
 | Fixture | Status | Codes |
 |---|---|---|
 | single-cell | `pass` (9 warnings) | `LICENSE001`, `META002`, `PROVFEAT001`, `PROVIMG001`, `PROVSEG001`, `SCHEMA001`, `SCHEMA002`, `SLOT001`, `SLOT003` |
-| well | `fail` (1 error, 8 warnings) | `AGG001`, `LICENSE001`, `META002`, `PROVFEAT001`, `PROVIMG001`, `PROVSEG001`, `SCHEMA001`, `SCHEMA002`, `SLOT001` |
-| treatment | `fail` (2 errors, 8 warnings) | `AGG001`, `IDENT006`, `LICENSE001`, `META002`, `PROVFEAT001`, `PROVIMG001`, `PROVSEG001`, `SCHEMA001`, `SCHEMA002`, `SLOT001` |
+| well | `pass` (9 warnings) | `AGG001`, `LICENSE001`, `META002`, `PROVFEAT001`, `PROVIMG001`, `PROVSEG001`, `SCHEMA001`, `SCHEMA002`, `SLOT001` |
+| treatment | `fail` (1 error, 9 warnings) | `AGG001`, `IDENT006`, `LICENSE001`, `META002`, `PROVFEAT001`, `PROVIMG001`, `PROVSEG001`, `SCHEMA001`, `SCHEMA002`, `SLOT001` |
 
-Three things are worth internalising from that table. The single-cell baseline
-is **warning-only**, so it passes by default and only fails under `--strict`.
-`SLOT003` appears solely because the single-cell fixture carries a realistic
-`raw` layer whose own processing stage is undeclared. And the aggregated
-profiles **fail**, because `AGG001` is an error — see below. The bare fixtures
-deliberately use only schema-declared measurement families, so they do **not**
-emit `FEAT001`/`FEAT002`; those false positives are demonstrated separately
-below with real CellProfiler / embedding names.
+Three things are worth internalising from that table. The single-cell and well
+baselines are **warning-only**, so they pass by default and only fail under
+`--strict`. `SLOT003` appears solely because the single-cell fixture carries a
+realistic `raw` layer whose own processing stage is undeclared. The bare
+treatment fixture still **fails**, because `IDENT006` remains an error when
+plate/well were aggregated away and no aggregation provenance exists — see
+below. The bare fixtures deliberately use only schema-declared measurement
+families, so they do **not** emit `FEAT001`/`FEAT002`; embedding-name
+`FEAT001` behaviour is unchanged and deferred.
 
 ## Categories that valid real output can trigger
 
@@ -79,31 +80,35 @@ scientific quality.
 `test_declaring_metadata_clears_the_entire_bare_baseline` asserts. Until then,
 avoid `--strict` in CI, since these warnings would fail the build.
 
-### Aggregation — governance signalling, but with a severity worth revisiting
+### Aggregation — governance signalling (AGG001 is a warning)
 
-Codes: `AGG001` (error), `AGG002`, `AGG003` (warnings). Demonstrated by the
-bare well and treatment fixtures.
+Codes: `AGG001`, `AGG002`, `AGG003` (all warnings). Demonstrated by the bare
+well and treatment fixtures. `IDENT006` (error) remains the treatment
+traceability failure when plate/well are absent *and* aggregation provenance
+is inadequate.
 
 This category asks an aggregated profile to declare *how* it was aggregated
 (`method`), from *how many* replicates (`replicate_count`), and from *what*
 level (`source_level`). The requirement is sound: a median well profile and a
 mean well profile are different data, and nothing in the file distinguishes
-them otherwise.
+them otherwise. Aggregation provenance remains **strongly recommended** for
+any reusable aggregated data product.
 
-The consequence, however, is sharp: because `AGG001` is an **error**, a
-standard pycytominer well profile with no `uns['aggregation']` **fails
-validation and exits 1**. On the treatment fixture it compounds with
-`IDENT006`, since plate/well were aggregated away and, without
-`uns['aggregation']`, the rows cannot be traced back to any source data.
+`AGG001` (missing aggregation method / missing block) is a **warning**. A
+standard pycytominer well profile with no `uns['aggregation']` therefore
+**passes** normal validation and only fails under `--strict`. This does **not**
+make incomplete or inconsistent aggregation metadata acceptable: when a block
+is present but missing `replicate_count` or `source_level`, `AGG002` /
+`AGG003` still fire as warnings with the same remediation intent.
 
-This is governance signalling rather than a false positive — the information
-genuinely is absent — but the error severity means the most common real-world
-aggregated profile fails out of the box. Whether that is the right severity is
-a calibration decision, deliberately **not** taken in this milestone.
+On the bare treatment fixture, `IDENT006` still fails the run: plate/well were
+aggregated away, and without adequate aggregation provenance the rows cannot
+be traced back to source data.
 
 **What to do:** declare `uns['aggregation']` with at least `method` and
 `source_level` (add `replicate_count` to clear `AGG002`). That single block
-clears `AGG001`, `AGG002`, `AGG003` and `IDENT006` together.
+clears `AGG001`, `AGG002`, `AGG003` and `IDENT006` together. Use `--strict` in
+CI only once that provenance is intentionally present.
 
 ### Features — partly calibrated; embeddings still a likely false positive
 

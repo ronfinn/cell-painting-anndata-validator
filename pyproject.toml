@@ -1,6 +1,6 @@
 [project]
 name = "cp-anndata-validator"
-version = "0.1.0a1"
+version = "0.2.0b1"
 description = "Validate the semantic correctness, metadata completeness, provenance and AI readiness of Cell Painting AnnData datasets."
 readme = "README.md"
 authors = [
@@ -10,7 +10,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",

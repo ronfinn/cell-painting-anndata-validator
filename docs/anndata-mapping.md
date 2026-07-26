@@ -15,13 +15,13 @@
 
 ## Suggested `.uns` metadata block shapes
 
-None of these are enforced beyond presence/basic shape (v0.1 does not
-validate arbitrary nested schemas for `.uns` sub-blocks), but checks look
+None of these are enforced beyond presence/basic shape (the validator does
+not validate arbitrary nested schemas for `.uns` sub-blocks), but checks look
 for these specific shapes:
 
 ```python
 adata.uns["schema_id"] = "generic-cell-painting"
-adata.uns["schema_version"] = "0.1.0"
+adata.uns["schema_version"] = "0.2.0"
 adata.uns["processing_stage"] = "normalized"  # raw | normalized | aggregated | ...
 adata.uns["licence"] = "CC0-1.0"
 

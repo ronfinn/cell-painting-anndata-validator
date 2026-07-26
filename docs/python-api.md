@@ -36,8 +36,11 @@ from cp_anndata_validator import ProfileLevel, validate
 report = validate(
     "experiment.h5ad",
     schema="jump-cp",
-    profile_level=ProfileLevel.SINGLE_CELL,
+    profile_level=ProfileLevel.WELL,
 )
+
+# Equivalent — plain strings are coerced to ProfileLevel before checks run:
+report = validate("experiment.h5ad", profile_level="well")
 
 print(report.status)                 # "pass" or "fail"
 print(report.counts.by_severity)     # {Severity.ERROR: 2, Severity.WARNING: 1}
@@ -47,7 +50,8 @@ for issue in report.issues:
 
 `profile_level` accepts either a `ProfileLevel` member or its string value
 (`"single-cell"`, `"well"`, `"treatment"`); a string is coerced to the enum
-before any check runs.
+before any check runs. Warnings alone do not fail a normal run; pass
+`strict=True` to treat warnings (including `AGG001`) as failures.
 
 Raises `ValueError` if `profile_level` is not one of those values,
 `cp_anndata_validator.LoadError` if the file can't be safely opened, and
