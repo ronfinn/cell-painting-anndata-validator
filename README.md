@@ -1,56 +1,61 @@
 # Cell Painting AnnData Validator
 
-Validate the semantic correctness, metadata completeness, provenance and basic
+**Validate the semantic correctness, metadata completeness, provenance and basic
 AI readiness of Cell Painting datasets stored as
-[AnnData](https://anndata.readthedocs.io/) (`.h5ad`) objects.
+[AnnData](https://anndata.readthedocs.io/) (`.h5ad`) objects.**
 
 [Documentation](https://ronfinn.github.io/cell-painting-anndata-validator/) ·
 [Quickstart](https://ronfinn.github.io/cell-painting-anndata-validator/getting-started/quickstart/) ·
 [CLI](https://ronfinn.github.io/cell-painting-anndata-validator/reference/cli/) ·
 [Python API](https://ronfinn.github.io/cell-painting-anndata-validator/reference/python-api/) ·
-[Issues](https://github.com/ronfinn/cell-painting-anndata-validator/issues) ·
+[Report a bug](https://github.com/ronfinn/cell-painting-anndata-validator/issues/new/choose) ·
 [Discussions](https://github.com/ronfinn/cell-painting-anndata-validator/discussions)
 
 [![CI](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/ci.yml)
-[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-teal)](https://ronfinn.github.io/cell-painting-anndata-validator/)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://github.com/ronfinn/cell-painting-anndata-validator)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.0b1-orange.svg)](https://github.com/ronfinn/cell-painting-anndata-validator/blob/main/CHANGELOG.md)
+[![Documentation](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/docs.yml/badge.svg)](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/docs.yml)
+[![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.2.0b1-orange)](CHANGELOG.md)
 
-> **Beta (`0.2.0b1`).** Built-in schemas `generic-cell-painting` and `jump-cp`
-> are at **`0.2.1`**. Rule codes and the public `validate()` surface are
-> intended to stay stable within this beta line; schema aliases may still be
-> calibrated from public evidence before a final `0.2.0`.
+<p align="center">
+  <img
+    src="docs/assets/cp-anndata-validator-social-preview.png"
+    alt="Cell Painting AnnData Validator — semantic validation for Cell Painting AnnData files"
+    width="100%"
+  >
+</p>
+
+> [!IMPORTANT]
+> **Beta (`0.2.0b1`).** The built-in `generic-cell-painting` and `jump-cp`
+> schemas are at version **`0.2.1`**. Rule codes and the public `validate()`
+> interface are intended to remain stable within this beta line, while schema
+> aliases may still be calibrated from public evidence before the final
+> `0.2.0` release.
 
 ## Current capabilities
 
-- Validate existing `.h5ad` files (dense, sparse, in-memory or backed)
-- Versioned YAML schemas with ordered, exact alias resolution
-- Profile levels: `single-cell`, `well`, `treatment` (detect or override)
-- Structured issues with stable rule codes, severities and remediations
-- Console, JSON and HTML reports
-- CLI (`cp-validate`) and Python API (`validate`)
+- Validate existing `.h5ad` files using dense or sparse matrices
+- Validate in-memory or backed AnnData objects
+- Detect or explicitly declare `single-cell`, `well` or `treatment` profiles
+- Resolve metadata through versioned YAML schemas and ordered aliases
+- Report structured findings with stable rule codes and suggested remediation
+- Check identifiers, controls, feature naming, metadata and provenance
+- Generate console, JSON and self-contained HTML reports
+- Use the validator through the `cp-validate` CLI or Python API
 
-## Boundaries
+## Scope and boundaries
 
 | In scope | Out of scope |
 |---|---|
-| Structural validity of AnnData slots | Converting CellProfiler / DeepProfiler / CSV → AnnData |
-| Semantic completeness vs a schema | Mutating or “fixing” the input file |
-| Basic AI-readiness signals (sampled) | Biological or scientific suitability of a phenotype |
-| Provenance / licence *presence* checks | Official JUMP-endorsed AnnData standardisation |
+| Structural validity of AnnData slots | Converting CellProfiler, DeepProfiler or CSV output into AnnData |
+| Semantic completeness against a schema | Mutating, repairing or rewriting the input file |
+| Identifier and profile-level consistency | Automatically normalising or aggregating profiles |
+| Basic sampled AI-readiness signals | Assessing the biological significance of a phenotype |
+| Presence of licence and provenance metadata | Confirming that provenance claims are scientifically correct |
+| Generic and JUMP-oriented compatibility schemas | Defining an official JUMP-endorsed AnnData standard |
 
-`jump-cp` is a **compatibility preset** from public JUMP metadata conventions,
-not an official JUMP AnnData standard.
-
-## Names
-
-| Role | Name |
-|---|---|
-| Distribution | `cp-anndata-validator` |
-| Import | `cp_anndata_validator` |
-| CLI | `cp-validate` |
-| Repository | [`ronfinn/cell-painting-anndata-validator`](https://github.com/ronfinn/cell-painting-anndata-validator) |
+The `jump-cp` schema is a **compatibility preset** based on publicly documented
+JUMP metadata conventions. It is not an official JUMP AnnData standard.
 
 ## Installation
 
