@@ -12,10 +12,24 @@ AI readiness of Cell Painting datasets stored as
 [Discussions](https://github.com/ronfinn/cell-painting-anndata-validator/discussions)
 
 [![CI](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/ci.yml)
+<<<<<<< HEAD
 [![Documentation](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/docs.yml/badge.svg)](https://github.com/ronfinn/cell-painting-anndata-validator/actions/workflows/docs.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.2.0b1-orange)](CHANGELOG.md)
+=======
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-teal)](https://ronfinn.github.io/cell-painting-anndata-validator/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://github.com/ronfinn/cell-painting-anndata-validator)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.2.0b1-orange.svg)](https://github.com/ronfinn/cell-painting-anndata-validator/blob/main/CHANGELOG.md)
+<p align="center">
+  <img
+    src="docs/assets/cp-anndata-validator-social-preview.png"
+    alt="Cell Painting AnnData Validator — semantic validation for Cell Painting AnnData files"
+    width="100%"
+  >
+</p>
+>>>>>>> 62c9ce6 (Add project preview image to README)
 
 <p align="center">
   <img
