@@ -20,9 +20,10 @@ adversarial:
   declare. Real CellProfiler families that the schemas do not yet list (for
   example ``ObjectSkeleton`` or ``Math``) are a false-positive-analysis
   concern, not a fixture concern.
-- ``Metadata_broad_sample`` is included where a real pipeline would emit it
-  even though ``generic-cell-painting`` does not list it as a
-  ``perturbation_id`` alias; that alias gap is likewise tracked separately.
+- ``Metadata_broad_sample`` is included where a real pipeline would emit it;
+  built-in schemas resolve it as ``perturbation_id`` (see schema alias
+  precedence). Samples are replicated across wells so profile detection stays
+  unambiguous.
 """
 
 from __future__ import annotations
@@ -141,7 +142,7 @@ def _add_pipeline_metadata(
     case through ``with_provenance=False``.
     """
     adata.uns["schema_id"] = schema_id
-    adata.uns["schema_version"] = "0.1.0"
+    adata.uns["schema_version"] = "0.2.0"
     adata.uns["processing_stage"] = processing_stage
     adata.uns["image_provenance"] = dict(_IMAGE_PROVENANCE)
     adata.uns["segmentation_provenance"] = dict(_SEGMENTATION_TOOL)
@@ -232,6 +233,10 @@ def make_pycytominer_well_profile(
     Includes ``Metadata_broad_sample`` (as a real profile would) and a PCA
     embedding in ``.obsm``, plus the ``uns['aggregation']`` provenance an
     aggregated profile is expected to declare.
+
+    Each broad sample is replicated across two wells so that, once
+    ``Metadata_broad_sample`` resolves as ``perturbation_id``, well-vs-treatment
+    cardinality still uniquely identifies this as a well-level profile.
     """
     records = list(
         product([f"BR0011{plate:04d}" for plate in range(n_plates)], well_names(n_wells))
@@ -244,8 +249,11 @@ def make_pycytominer_well_profile(
         {
             "Metadata_Plate": plates,
             "Metadata_Well": wells,
-            "Metadata_broad_sample": [f"BRD-K{index:05d}" for index in range(n_obs)],
+            # Two wells share each broad sample so treatment cardinality != n_rows.
+            "Metadata_broad_sample": [f"BRD-K{index // 2:05d}" for index in range(n_obs)],
             "Metadata_pert_type": ["negcon" if well == first_well else "trt" for well in wells],
+            # Generic schema alias (jump-cp uses Metadata_perturbation_modality instead).
+            "perturbation_modality": ["compound"] * n_obs,
             "Metadata_Batch": "2020_11_04_CPJUMP1",
             "Metadata_Source": "source_4",
         },

@@ -1,5 +1,5 @@
 schema_id: generic-cell-painting
-schema_version: "0.1.0"
+schema_version: "0.2.0"
 description: >
   Vendor-neutral schema for Cell Painting profiles. Does not assume any
   single upstream pipeline's exact column spelling: canonical fields are
@@ -27,7 +27,17 @@ fields:
     required_for: [single-cell]
     description: Cell or segmented-object identifier within a site.
   perturbation_id:
-    aliases: [perturbation_id, pert_id, treatment_id]
+    # Precedence: generic canonical aliases first, then evidenced JUMP-style
+    # columns. First match wins (case-insensitive, exact).
+    aliases:
+      [
+        perturbation_id,
+        pert_id,
+        treatment_id,
+        Metadata_broad_sample,
+        Metadata_pert_iname,
+        Metadata_JCP2022,
+      ]
     location: obs
     required_for: [treatment]
     description: Identifier of the perturbation applied to a well or treatment group.
@@ -68,4 +78,10 @@ measurement_families:
     Children,
     Parent,
     Number,
+    ObjectSkeleton,
+    Math,
+    Overlap,
+    SizeShape,
+    AreaOccupied,
+    ImageQuality,
   ]

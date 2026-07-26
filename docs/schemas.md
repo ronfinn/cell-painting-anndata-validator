@@ -16,10 +16,28 @@ typo in a schema file surfaces immediately rather than being ignored.
 
 ## Built-in schemas
 
+Both built-in schemas are currently at **`schema_version: "0.2.0"`**.
+
 | Name | Description |
 |---|---|
 | `generic-cell-painting` | Vendor-neutral schema; does not assume any single upstream pipeline's exact column names. |
 | `jump-cp` | A compatibility preset based on public [JUMP Cell Painting Consortium](https://jump-cellpainting.broadinstitute.org/) metadata conventions. **Not** an official JUMP-endorsed AnnData schema — see [jump-cp-derivation.md](jump-cp-derivation.md). |
+
+### `perturbation_id` alias precedence (v0.2.0)
+
+Aliases are tried in declaration order; the first case-insensitive exact match
+wins (no regex or fuzzy matching):
+
+| Schema | Order |
+|---|---|
+| `jump-cp` | `Metadata_JCP2022` → `Metadata_broad_sample` → `Metadata_pert_iname` → `perturbation_id` → `pert_id` → `treatment_id` |
+| `generic-cell-painting` | `perturbation_id` → `pert_id` → `treatment_id` → `Metadata_broad_sample` → `Metadata_pert_iname` → `Metadata_JCP2022` |
+
+### Measurement families added in v0.2.0
+
+Both schemas now also recognize these CellProfiler families for `FEAT002`:
+`ObjectSkeleton`, `Math`, `Overlap`, `SizeShape`, `AreaOccupied`,
+`ImageQuality`.
 
 Inspect them with the CLI:
 

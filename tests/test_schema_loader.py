@@ -217,9 +217,23 @@ def test_valid_semver_schema_versions_are_accepted(tmp_path: Path, version: str)
     assert schema.schema_version == version
 
 
-def test_builtin_schemas_use_version_0_1_0() -> None:
+def test_builtin_schemas_use_version_0_2_0() -> None:
     for name in ("generic-cell-painting", "jump-cp"):
-        assert load_builtin_schema(name).schema_version == "0.1.0"
+        assert load_builtin_schema(name).schema_version == "0.2.0"
+
+
+def test_builtin_schemas_include_calibrated_measurement_families() -> None:
+    calibrated = {
+        "ObjectSkeleton",
+        "Math",
+        "Overlap",
+        "SizeShape",
+        "AreaOccupied",
+        "ImageQuality",
+    }
+    for name in ("generic-cell-painting", "jump-cp"):
+        families = set(load_builtin_schema(name).measurement_families)
+        assert calibrated <= families
 
 
 def test_missing_builtin_schema_resource_file_raises_schema_error(

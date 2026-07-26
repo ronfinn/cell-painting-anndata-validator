@@ -58,3 +58,11 @@ def test_flags_missing_negative_control() -> None:
     issues = check_control_annotations(ctx)
 
     assert [issue.code for issue in issues] == ["CTRL003"]
+
+
+def test_accepts_jump_style_poscon_and_negcon_prefixes() -> None:
+    adata = make_single_cell_adata(n_obs=4)
+    adata.obs["control_type"] = ["negcon_cpjump", "poscon_cp", "poscon_diverse", "trt"]
+    ctx = make_context(adata)
+
+    assert check_control_annotations(ctx) == []

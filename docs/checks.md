@@ -67,8 +67,8 @@ names the canonical field instead (for example `obs.plate`).
 | Code | Severity | Meaning | Remediation |
 |---|---|---|---|
 | `CTRL001` | warning | No control/treatment annotation column resolved. | Add a control/treatment annotation column (for example `Metadata_pert_type`) with values such as negcon/poscon/trt. |
-| `CTRL002` | warning | The control/treatment column contains an unrecognized label. | Use one of the recognized labels (negcon, poscon, trt, control, treatment), or extend the schema/documentation to cover this label. |
-| `CTRL003` | warning | No negative control (`negcon`) annotation was found. | Include at least one negative control (for example labeled `'negcon'`) to support downstream normalization and QC. |
+| `CTRL002` | warning | The control/treatment column contains an unrecognized label. | Use one of the recognized labels (negcon, poscon, trt, control, treatment), a JUMP-style prefix (`negcon_...`, `poscon_...`), or extend the schema/documentation to cover this label. |
+| `CTRL003` | warning | No negative control (`negcon` or `negcon_...`) annotation was found. | Include at least one negative control (for example labeled `'negcon'` or `'negcon_...'`) to support downstream normalization and QC. |
 
 ## Features (`checks/features.py`)
 

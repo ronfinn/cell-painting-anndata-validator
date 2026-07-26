@@ -105,65 +105,54 @@ a calibration decision, deliberately **not** taken in this milestone.
 `source_level` (add `replicate_count` to clear `AGG002`). That single block
 clears `AGG001`, `AGG002`, `AGG003` and `IDENT006` together.
 
-### Features — likely false positive
+### Features — partly calibrated; embeddings still a likely false positive
 
 Codes: `FEAT001`, `FEAT002` (both warnings).
 
 `FEAT001` checks that feature names start with a schema-declared compartment
 (`Cells_`, `Cytoplasm_`, `Nuclei_`, `Image_`); `FEAT002` checks that the token
-after the compartment is a recognized measurement family. Two verified cases
-misfire on legitimate data:
+after the compartment is a recognized measurement family.
 
-- **Real CellProfiler families the schemas do not list.** `ObjectSkeleton`,
-  `Math`, `Overlap`, `SizeShape`, `AreaOccupied` and `ImageQuality` are all
-  emitted by real CellProfiler pipelines but absent from
-  `measurement_families`, so a name like
-  `Cells_ObjectSkeleton_NumberBranchEnds_Mito` raises `FEAT002` despite being
-  perfectly canonical.
-- **Embedding-based features.** DeepProfiler-style names such as
-  `efficientnet_0` have no compartment prefix at all, so `FEAT001` flags
-  *every* feature in the matrix (verified against a 4-column embedding
-  fixture: all four names raised `FEAT001`).
+- **CellProfiler families (calibrated in schema v0.2.0).** Built-in schemas now
+  include `ObjectSkeleton`, `Math`, `Overlap`, `SizeShape`, `AreaOccupied` and
+  `ImageQuality`. Names such as `Cells_ObjectSkeleton_NumberBranchEnds_Mito`
+  no longer raise `FEAT002`. Unrecognized families still do.
+- **Embedding-based features (still a likely false positive).**
+  DeepProfiler-style names such as `efficientnet_0` have no compartment prefix
+  at all, so `FEAT001` flags *every* feature in the matrix (verified against a
+  4-column embedding fixture). That behaviour is unchanged in this release.
 
-Both are **likely false positives**: the datasets are valid and the naming is
-what the upstream tool produces. Both are warnings, so neither fails a
-non-strict run.
+**What to do:** for CellProfiler data on schema ≥ 0.2.0, no action is needed
+for the calibrated families. For embeddings, expect `FEAT001` and treat it as
+informational — a compartment prefix is meaningless for a neural embedding —
+or use a custom schema with empty `compartments` to skip the check.
 
-**What to do:** for CellProfiler data, extend `measurement_families` in a
-custom schema (see [`schemas.md`](schemas.md)) until the built-in vocabulary is
-widened. For embeddings, expect `FEAT001` and treat it as informational — a
-compartment prefix is meaningless for a neural embedding.
-
-### Identifiers — alias gaps, partly a likely false positive
+### Identifiers — perturbation aliases calibrated in schema v0.2.0
 
 Codes: `IDENT001`–`IDENT005` (missing required identifiers), `IDENT006`
 (treatment traceability), `IDENT007`/`IDENT008` (perturbation modality),
 `OBS001`/`OBS002` (duplicate/missing identifier values), `IDENT000`
 (custom-schema fallback).
 
-Resolution is exact, not fuzzy, so real JUMP perturbation spellings resolve
-inconsistently (verified):
+Resolution remains exact and case-insensitive (no regex/fuzzy matching).
+Schema v0.2.0 adds the evidenced JUMP perturbation columns, with
+schema-specific precedence (first match wins):
 
-| Column | `generic-cell-painting` | `jump-cp` |
-|---|---|---|
-| `Metadata_JCP2022` | not resolved | resolves as `perturbation_id` |
-| `Metadata_broad_sample` | not resolved | not resolved |
-| `Metadata_pert_iname` | not resolved | not resolved |
+| Schema | Alias precedence for `perturbation_id` |
+|---|---|
+| `jump-cp` | `Metadata_JCP2022` → `Metadata_broad_sample` → `Metadata_pert_iname` → `perturbation_id` / `pert_id` / `treatment_id` |
+| `generic-cell-painting` | `perturbation_id` / `pert_id` / `treatment_id` → `Metadata_broad_sample` → `Metadata_pert_iname` → `Metadata_JCP2022` |
 
-The practical effect is subtle rather than loud. An unresolved
-`perturbation_id` does not raise a missing-identifier error at well level
-(it isn't required there); instead it **silently disables** `IDENT007`/
-`IDENT008` and removes `treatment` from profile detection. So the risk is a
-*false negative* — checks quietly not running — more than a false positive.
-Validate JUMP-style data with `--schema jump-cp`, as the treatment fixture
-does.
+Once any of those columns resolves, `IDENT007`/`IDENT008` become applicable
+instead of being silently skipped. Prefer `--schema jump-cp` for JUMP-style
+metadata so `Metadata_JCP2022` wins over fallbacks.
 
 `OBS001`/`OBS002` are low-risk: they fire only on genuinely duplicated or null
 identifier tuples, which is a real data defect.
 
-**What to do:** use `jump-cp` for JUMP-style metadata, or add your pipeline's
-perturbation column as an alias in a custom schema. If `IDENT007` appears,
-declare a modality column rather than ignoring it.
+**What to do:** choose the schema that matches your column convention. If
+`IDENT007` appears after a perturbation column resolves, declare a modality
+column rather than ignoring it.
 
 ### Profile consistency — expected ambiguity, not a false positive
 
@@ -186,24 +175,23 @@ certain plate designs, not of the fixtures.
 the level explicitly. Note that a declared level disagreeing with detection
 raises `PROFILE003`, which is the intended feedback loop.
 
-### Annotations — likely false positive for site-specific vocabularies
+### Annotations — JUMP prefixes calibrated; other site vocabularies still warn
 
 Codes: `CTRL001`, `CTRL002`, `CTRL003` (all warnings).
 
-Recognized labels are `negcon`, `poscon`, `trt`, `control`, `treatment`,
-`unknown`. Verified misfires on legitimate data: JUMP's finer-grained control
-vocabulary (`poscon_cp`, `poscon_diverse`) raises `CTRL002`, because the
-comparison is exact rather than prefix-based. That is a **likely false
-positive** — those are real, meaningful JUMP labels.
+Recognized labels are the canonical set (`negcon`, `poscon`, `trt`,
+`control`, `treatment`, `unknown`) plus case-insensitive **prefix** matches
+on `negcon_` and `poscon_` (for example `poscon_cp`, `poscon_diverse`,
+`negcon_cpjump`). Matching is prefix-based, not arbitrary substring matching
+— `my_poscon_label` still raises `CTRL002`.
 
-`CTRL003` ("no negative control") is different: on a compound-only plate with
-no `negcon`, the warning is factually correct and worth surfacing, since
-downstream normalization typically needs one. Treat it as governance
-signalling about experimental design.
+`CTRL003` ("no negative control") accepts either exact `negcon` /
+`negative_control` / `control` or a `negcon_...` prefix. On a compound-only
+plate with no negative control at all, the warning remains factually correct
+governance signalling about experimental design.
 
-**What to do:** map site-specific labels onto the recognized vocabulary, or
-extend a custom schema. Do not suppress `CTRL003` without checking how your
-normalization obtains its baseline.
+**What to do:** prefer canonical or JUMP-prefixed labels. Do not suppress
+`CTRL003` without checking how your normalization obtains its baseline.
 
 ### AI readiness — informational, low risk
 

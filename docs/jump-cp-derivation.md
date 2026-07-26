@@ -35,8 +35,8 @@ detection, reports) treats a JUMP-style dataset identically to any other:
 | `well` | `Metadata_Well` | |
 | `site` | `Metadata_Site` | single-cell only |
 | `cell_id` | `Metadata_ObjectNumber` | single-cell only |
-| `perturbation_id` | `Metadata_JCP2022` | JUMP's perturbation code |
-| `control_type` | `Metadata_pert_type` | JUMP's `poscon`/`negcon`/`trt` convention |
+| `perturbation_id` | `Metadata_JCP2022`, then `Metadata_broad_sample`, then `Metadata_pert_iname` | First match wins; generic aliases follow |
+| `control_type` | `Metadata_pert_type` | JUMP's `poscon`/`negcon`/`trt` convention (plus `poscon_`/`negcon_` prefixes at check time) |
 | `perturbation_modality` | `Metadata_perturbation_modality` | compound/orf/crispr/unknown |
 | `batch` | `Metadata_Batch` | |
 | `source` | `Metadata_Source` | JUMP's multi-site data-generation identifier |
@@ -44,6 +44,10 @@ detection, reports) treats a JUMP-style dataset identically to any other:
 Every field also keeps its `generic-cell-painting`-style alias (for example
 `plate_id`, `well_id`) so a dataset that mixes conventions, or that has
 already been partially renamed, still resolves.
+
+Schema version `0.2.0` also extends `measurement_families` with the evidenced
+CellProfiler families `ObjectSkeleton`, `Math`, `Overlap`, `SizeShape`,
+`AreaOccupied` and `ImageQuality` (shared with `generic-cell-painting`).
 
 ## Explicitly not claimed
 
