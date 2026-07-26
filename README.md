@@ -562,8 +562,10 @@ Use:
 
 ## Licence
 
-Cell Painting AnnData Validator is released under the
-[Apache License 2.0](LICENSE).
+Releases in the `0.2.x` series are licensed under
+[Apache License 2.0](LICENSE). The licensing model for later releases may
+change. See [LICENSING.md](LICENSING.md) for the version-specific licensing
+policy.
 
 ## Citation
 
