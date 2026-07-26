@@ -45,6 +45,9 @@ print(report.status)   # "pass" or "fail"
 - [`false-positives.md`](false-positives.md) — what real pipeline output is
   expected to report, and which findings are governance signalling versus
   likely false positives.
+- [`public-data-pilots.md`](public-data-pilots.md) — LINCS and JUMP Cell
+  Painting Gallery pilot notes (where to get real profiles, conversion
+  mapping, expected warnings).
 - [`jump-cp-derivation.md`](jump-cp-derivation.md) — provenance of the
   `jump-cp` compatibility preset.
 - [`limitations.md`](limitations.md) — known v0.2 gaps and caveats.

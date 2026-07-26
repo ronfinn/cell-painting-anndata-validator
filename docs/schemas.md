@@ -16,12 +16,33 @@ typo in a schema file surfaces immediately rather than being ignored.
 
 ## Built-in schemas
 
-Both built-in schemas are currently at **`schema_version: "0.2.0"`**.
+Both built-in schemas are currently at **`schema_version: "0.2.1"`**.
 
 | Name | Description |
 |---|---|
 | `generic-cell-painting` | Vendor-neutral schema; does not assume any single upstream pipeline's exact column names. |
 | `jump-cp` | A compatibility preset based on public [JUMP Cell Painting Consortium](https://jump-cellpainting.broadinstitute.org/) metadata conventions. **Not** an official JUMP-endorsed AnnData schema — see [jump-cp-derivation.md](jump-cp-derivation.md). |
+
+### `batch` alias precedence (v0.2.1)
+
+Aliases are tried in declaration order; the first case-insensitive exact match
+wins:
+
+| Schema | Order |
+|---|---|
+| `generic-cell-painting` | `batch_id` → `batch` → `Metadata_Batch` → `Metadata_Batch_Number` |
+| `jump-cp` | `Metadata_Batch` → `batch_id` → `Metadata_Batch_Number` |
+
+`Metadata_Batch_Number` is the LINCS-style batch field observed on Cell
+Painting Gallery Level 4b profiles.
+
+### `Metadata_pert_type` vs perturbation modality
+
+`Metadata_pert_type` is an alias of **`control_type`** only (control vs
+treatment / poscon / negcon / trt). It is **not** an alias of
+`perturbation_modality`. In LINCS exports that column commonly means control
+status, not chemical/genetic modality — see
+[public-data-pilots.md](public-data-pilots.md).
 
 ### `perturbation_id` alias precedence (v0.2.0)
 

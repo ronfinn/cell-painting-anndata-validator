@@ -36,9 +36,9 @@ detection, reports) treats a JUMP-style dataset identically to any other:
 | `site` | `Metadata_Site` | single-cell only |
 | `cell_id` | `Metadata_ObjectNumber` | single-cell only |
 | `perturbation_id` | `Metadata_JCP2022`, then `Metadata_broad_sample`, then `Metadata_pert_iname` | First match wins; generic aliases follow |
-| `control_type` | `Metadata_pert_type` | JUMP's `poscon`/`negcon`/`trt` convention (plus `poscon_`/`negcon_` prefixes at check time) |
-| `perturbation_modality` | `Metadata_perturbation_modality` | compound/orf/crispr/unknown |
-| `batch` | `Metadata_Batch` | |
+| `control_type` | `Metadata_pert_type` | JUMP's `poscon`/`negcon`/`trt` convention (plus `poscon_`/`negcon_` prefixes at check time). In LINCS exports this column is control/treatment status — not modality. |
+| `perturbation_modality` | `Metadata_perturbation_modality` | compound/orf/crispr/unknown. Do **not** use `Metadata_pert_type` here. |
+| `batch` | `Metadata_Batch`, then `batch_id`, then `Metadata_Batch_Number` | `Metadata_Batch_Number` added in schema v0.2.1 (LINCS-style) |
 | `source` | `Metadata_Source` | JUMP's multi-site data-generation identifier |
 
 Every field also keeps its `generic-cell-painting`-style alias (for example
@@ -48,7 +48,8 @@ already been partially renamed, still resolves.
 Schema version `0.2.0` also extends `measurement_families` with the evidenced
 CellProfiler families `ObjectSkeleton`, `Math`, `Overlap`, `SizeShape`,
 `AreaOccupied` and `ImageQuality` (shared with `generic-cell-painting`).
-
+Schema version `0.2.1` appends `Metadata_Batch_Number` to the `batch` alias
+list on both built-in schemas.
 ## Explicitly not claimed
 
 - This preset does not imply JUMP has reviewed, endorsed, or published this

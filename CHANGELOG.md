@@ -6,10 +6,39 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Public-data pilot documentation.** `docs/public-data-pilots.md` records
+  genuine Cell Painting Gallery pilots for LINCS (`cpg0004-lincs`) and JUMP
+  (`cpg0000-jump-pilot`): Zenodo LFS pitfall, CPG prefixes, truthful conversion
+  mapping, JUMP `*_feature_select_batch*` naming, and expected governance
+  warnings.
+
+### Changed
+
+- **Built-in schemas → `0.2.1`.** Both `generic-cell-painting` and `jump-cp`
+  accept `Metadata_Batch_Number` as a `batch` alias (LINCS-style), appended
+  after existing aliases so first-alias-wins precedence is preserved.
+- **`Metadata_pert_type` semantics documented.** Remains a `control_type`
+  alias only; not mapped to `perturbation_modality`. `IDENT007` unchanged.
+
+### Validated
+
+- Real LINCS Level 4b well profile (`SQ00014812`, 384 × 493) from
+  `s3://cellpainting-gallery/cpg0004-lincs/broad/workspace/` validates with
+  normal exit 0, strict exit 1 (warnings only), correct well auto-detection,
+  and in-memory/`--backed` parity. No `ENGINE001`; no feature-family false
+  positives on that plate.
+- Real JUMP pilot well profile (`BR00116991`, 384 × 838) from
+  `s3://cellpainting-gallery/cpg0000-jump-pilot/` validates under `jump-cp`
+  0.2.1 with the same pass/strict/backed/auto-detect pattern; identical issue
+  set under `generic-cell-painting`. No release-blocking defects.
+
 ## [0.2.0b1] - 2026-07-26
 
 First public beta. Package version `0.2.0b1` is independent of the built-in
-schema versions, which remain at `schema_version: "0.2.0"`.
+schema versions (originally `schema_version: "0.2.0"` at beta cut; see
+`[Unreleased]` for the subsequent `0.2.1` batch-alias calibration).
 
 ### Added
 
@@ -58,6 +87,23 @@ schema versions, which remain at `schema_version: "0.2.0"`.
   validation does not fail for `AGG001` alone; `--strict` does. Incomplete
   aggregation blocks still emit `AGG002` / `AGG003`. `IDENT006` remains an
   error when treatment rows cannot be traced.
+
+### Validated (public Gallery pilots)
+
+The `0.2.0b1` beta line was exercised against genuine Cell Painting Gallery
+profiles (conversion and reports kept outside the Git repository):
+
+- one LINCS Level 4b plate (`cpg0004-lincs`, `SQ00014812`, 384 × 493) under
+  `generic-cell-painting`;
+- one JUMP pilot plate (`cpg0000-jump-pilot`, `BR00116991`, 384 × 838) under
+  `jump-cp`;
+- normal and `--backed` loading;
+- explicit `--profile-level well` and automatic profile-level selection.
+
+Neither pilot exposed a release-blocking validator defect. Remaining findings
+were expected governance or source-metadata warnings (for example `AGG001`,
+`IDENT007`, licence/schema/provenance gaps, and missing batch/source columns
+on the JUMP profile table).
 
 ### Known limitations
 

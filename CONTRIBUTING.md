@@ -101,7 +101,7 @@ Also confirm manually:
 - [ ] Package version in `pyproject.toml` and `CITATION.cff` match
       `uv run cp-validate --version`.
 - [ ] Built-in schema versions remain independent (currently
-      `schema_version: "0.2.0"`) — do not confuse them with the package version.
+      `schema_version: "0.2.1"`) — do not confuse them with the package version.
 - [ ] `CHANGELOG.md` has an entry for this version.
 - [ ] No `.h5ad` binaries are tracked (`git ls-files '*.h5ad'` is empty).
 - [ ] PyPI publication remains a separate, deliberate decision.

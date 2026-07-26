@@ -1,5 +1,5 @@
 schema_id: generic-cell-painting
-schema_version: "0.2.0"
+schema_version: "0.2.1"
 description: >
   Vendor-neutral schema for Cell Painting profiles. Does not assume any
   single upstream pipeline's exact column spelling: canonical fields are
@@ -42,17 +42,24 @@ fields:
     required_for: [treatment]
     description: Identifier of the perturbation applied to a well or treatment group.
   perturbation_modality:
+    # Note: do NOT add Metadata_pert_type here. In LINCS / pycytominer exports,
+    # Metadata_pert_type is control vs treatment status (see control_type), not
+    # chemical/genetic/ORF modality. Bare "pert_type" remains a modality shorthand.
     aliases: [perturbation_modality, modality, pert_type]
     location: obs
     required_for: []
-    description: Perturbation modality (for example compound, orf, crispr).
+    description: >
+      Perturbation modality (for example compound, orf, crispr). Not the same as
+      LINCS Metadata_pert_type, which denotes control/treatment status.
   control_type:
     aliases: [control_type, control_annotation, Metadata_pert_type]
     location: obs
     required_for: []
-    description: Control/treatment annotation (for example negcon, poscon, trt).
+    description: >
+      Control/treatment annotation (for example negcon, poscon, trt). In LINCS
+      Cell Painting exports, Metadata_pert_type commonly carries this meaning.
   batch:
-    aliases: [batch_id, batch, Metadata_Batch]
+    aliases: [batch_id, batch, Metadata_Batch, Metadata_Batch_Number]
     location: obs
     required_for: []
     description: Experimental batch identifier.

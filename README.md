@@ -32,7 +32,7 @@ JSON, or HTML reports.
 > **Project status:** Beta (`0.2.0b1`). The public API and rule codes are
 > stable enough for local and CI use; built-in schema *vocabulary* may still
 > grow. Package version and built-in `schema_version` are independent — this
-> release ships package `0.2.0b1` with schemas at `schema_version: "0.2.0"`.
+> release ships package `0.2.0b1` with schemas at `schema_version: "0.2.1"`.
 
 
 
@@ -476,7 +476,7 @@ A schema is a versioned YAML document that defines:
 
 ### Built-in schemas
 
-Both built-in schemas are currently at **`schema_version: "0.2.0"`**. That
+Both built-in schemas are currently at **`schema_version: "0.2.1"`**. That
 schema version is independent of the package version (`0.2.0b1`).
 
 List and inspect:
@@ -770,8 +770,10 @@ are governance signalling, not proof the matrix is scientifically wrong.
 
 See [`docs/false-positives.md`](docs/false-positives.md) for the pinned
 baselines, category-by-category interpretation, and how to reach a clean
-report. The complete rule catalogue lives in
-[`docs/checks.md`](docs/checks.md).
+report. For notes from real LINCS and JUMP Gallery pilots (where to download
+profiles, conversion mapping, expected warnings), see
+[`docs/public-data-pilots.md`](docs/public-data-pilots.md). The complete rule
+catalogue lives in [`docs/checks.md`](docs/checks.md).
 
 ## Limitations
 

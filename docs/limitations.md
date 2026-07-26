@@ -2,7 +2,7 @@
 
 This page documents known gaps deliberately deferred out of current scope, so
 users and contributors don't mistake them for bugs. Package version
-(`0.2.0b1`) and built-in schema versions (`0.2.0`) are independent.
+(`0.2.0b1`) and built-in schema versions (`0.2.1`) are independent.
 
 ## Backed-mode coverage is a documented subset, not complete
 

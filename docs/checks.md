@@ -37,7 +37,7 @@ names the canonical field instead (for example `obs.plate`).
 | `IDENT004` | error | No column resolved for the canonical `cell_id` field (single-cell only — **not** required at well or treatment level). | Same as `IDENT001`, for `cell_id`. |
 | `IDENT005` | error | No column resolved for the canonical `perturbation_id` field (treatment). | Same as `IDENT001`, for `perturbation_id`. |
 | `IDENT006` | error | A treatment-level profile has neither direct plate+well identifiers nor adequate `uns['aggregation']` provenance (both `method` and `source_level`), so its rows cannot be traced back to source data. | Either keep plate/well identifier columns on treatment-level rows, or declare `uns['aggregation']` with both `'method'` and `'source_level'`. |
-| `IDENT007` | warning | A perturbation identifier resolved, but no perturbation modality column did. | Add a perturbation modality column (for example `Metadata_perturbation_modality`) with a value such as compound/orf/crispr. |
+| `IDENT007` | warning | A perturbation identifier resolved, but no perturbation modality column did. Do not use LINCS `Metadata_pert_type` for this — that field is control/treatment status (`control_type`). | Add a perturbation modality column (for example `Metadata_perturbation_modality`) with a value such as compound/orf/crispr. |
 | `IDENT008` | warning | The perturbation modality column contains an unrecognized value. | Use a recognized modality (compound, orf, crispr, crispr_ko, crispr_a, unknown), or extend the schema/documentation to cover this value. |
 | `OBS001` | error | Two or more observations share an identical identifier-column tuple. | Ensure each observation's identifier columns uniquely identify it, or remove/merge duplicated rows. |
 | `OBS002` | error | An identifier column has one or more missing (null) values. | Populate the column for every observation, or remove incomplete rows. |
@@ -81,7 +81,7 @@ names the canonical field instead (for example `obs.plate`).
 
 | Code | Severity | Meaning | Remediation |
 |---|---|---|---|
-| `META001` | information | No batch identifier column resolved. | Add a batch identifier column if this dataset spans multiple experimental batches. |
+| `META001` | information | No batch identifier column resolved. | Add a batch identifier column if this dataset spans multiple experimental batches (aliases include `batch_id`, `Metadata_Batch`, and LINCS-style `Metadata_Batch_Number`). |
 | `META002` | warning | No experiment metadata block (`uns['experiment']`). | Record experiment-level metadata (for example instrument, protocol, date) in `uns['experiment']`. |
 | `META003` | information | No data-generating source/site identifier column resolved. | Add a source identifier column if this dataset spans multiple data-generating sites or laboratories. |
 

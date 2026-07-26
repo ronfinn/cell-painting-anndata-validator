@@ -61,6 +61,6 @@ echo "$LIST_OUT" | grep -q 'jump-cp'
 echo "==> cp-validate schema show jump-cp"
 SHOW_OUT="$("$CPV" schema show jump-cp)"
 echo "$SHOW_OUT" | head -n 5
-echo "$SHOW_OUT" | grep -q 'jump-cp v0.2.0'
+echo "$SHOW_OUT" | grep -q 'jump-cp v0.2.1'
 
 echo "==> smoke_wheel.sh OK"

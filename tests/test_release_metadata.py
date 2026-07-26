@@ -12,7 +12,7 @@ from cp_anndata_validator.cli.app import app
 from cp_anndata_validator.schema.loader import list_builtin_schema_names, load_builtin_schema
 
 EXPECTED_PACKAGE_VERSION = "0.2.0b1"
-EXPECTED_SCHEMA_VERSION = "0.2.0"
+EXPECTED_SCHEMA_VERSION = "0.2.1"
 
 runner = CliRunner()
 _ROOT = Path(__file__).resolve().parents[1]
@@ -39,7 +39,7 @@ def test_cli_version_prints_package_version_and_exits_zero() -> None:
     assert result.stdout.strip() == EXPECTED_PACKAGE_VERSION
 
 
-def test_builtin_schemas_remain_at_schema_version_0_2_0() -> None:
+def test_builtin_schemas_remain_at_schema_version_0_2_1() -> None:
     names = list_builtin_schema_names()
     assert names == ["generic-cell-painting", "jump-cp"]
     for name in names:

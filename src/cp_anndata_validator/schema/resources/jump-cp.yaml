@@ -1,5 +1,5 @@
 schema_id: jump-cp
-schema_version: "0.2.0"
+schema_version: "0.2.1"
 description: >
   Compatibility preset based on public JUMP Cell Painting Consortium
   metadata conventions documented at
@@ -47,14 +47,18 @@ fields:
     aliases: [Metadata_pert_type, control_type]
     location: obs
     required_for: []
-    description: Control/treatment annotation (JUMP convention poscon/negcon/trt).
+    description: >
+      Control/treatment annotation (JUMP convention poscon/negcon/trt). In LINCS
+      Cell Painting exports, Metadata_pert_type commonly carries this meaning —
+      not chemical/genetic modality.
   perturbation_modality:
+    # Do not list Metadata_pert_type: that column is control/treatment status.
     aliases: [Metadata_perturbation_modality, perturbation_modality]
     location: obs
     required_for: []
     description: Perturbation modality (compound/orf/crispr/unknown).
   batch:
-    aliases: [Metadata_Batch, batch_id]
+    aliases: [Metadata_Batch, batch_id, Metadata_Batch_Number]
     location: obs
     required_for: []
     description: Experimental batch identifier.

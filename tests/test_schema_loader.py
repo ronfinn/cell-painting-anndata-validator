@@ -219,7 +219,7 @@ def test_valid_semver_schema_versions_are_accepted(tmp_path: Path, version: str)
 
 def test_builtin_schemas_use_version_0_2_0() -> None:
     for name in ("generic-cell-painting", "jump-cp"):
-        assert load_builtin_schema(name).schema_version == "0.2.0"
+        assert load_builtin_schema(name).schema_version == "0.2.1"
 
 
 def test_builtin_schemas_include_calibrated_measurement_families() -> None:
